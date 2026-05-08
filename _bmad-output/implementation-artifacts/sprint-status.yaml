@@ -1,0 +1,87 @@
+# generated: 2026-05-07
+# last_updated: 2026-05-08 (story 1-1 reached `done` after code review)
+# project: kw-platform-ops
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: "2026-05-07"
+last_updated: "2026-05-08"
+project: kw-platform-ops
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+development_status:
+  # Epic 1: Konnect Provider Modernization (3.1.0 → 3.15)
+  epic-1: in-progress
+  1-1-audit-konnect-provider-3-15-schema-diffs-against-current-resource-usage: done
+  1-2-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-terraform-konnect-teams: backlog
+  1-3-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-github-actions-provision-konnect-resources-terraform: backlog
+  1-4-implement-idempotent-001-konnect-3-15-rename-sh-state-migration-scripts-in-both-terraform-trees: backlog
+  1-5-add-make-migrate-state-driver-with-applied-marker-file: backlog
+  1-6-verify-clean-plan-against-fresh-local-minio-backend-and-author-migration-md-2: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Local-First Demo Bootstrap (Clone-to-First-Team in < 20 min)
+  epic-2: backlog
+  2-1-add-config-minio-tfbackend-to-both-terraform-trees-alongside-existing-config-s3-tfbackend: backlog
+  2-2-create-shared-init-terraform-composite-action: backlog
+  2-3-rewire-platform-workflows-to-use-init-terraform-and-tf-backend-config: backlog
+  2-4-rename-create-s3-bucket-sh-create-state-bucket-sh-with-minio-aws-support: backlog
+  2-5-add-act-secrets-example-template-and-update-prep-script: backlog
+  2-6-end-to-end-verification-of-make-prepare-against-minio-vault-on-a-clean-macos-clone: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Pluggable Kubernetes Target for Dataplane Deploys
+  epic-3: backlog
+  3-1-add-paired-kubeconfig-path-kubeconfig-content-inputs-to-deploy-dp-action: backlog
+  3-2-verify-local-kubernetes-deployment-end-to-end-orbstack-docker-desktop: backlog
+  3-3-verify-cloud-kubernetes-deployment-via-kubeconfig-content: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: API Publishing & Action Contract Stability
+  epic-4: backlog
+  4-1-audit-and-complete-action-yml-declarations-for-every-published-composite-action: backlog
+  4-2-author-p4-conformant-readme-for-every-published-composite-action: backlog
+  4-3-implement-lint-action-contracts-yaml-ci-workflow-enforcing-readme-action-yml-non-divergence: backlog
+  4-4-implement-lint-no-bypass-yaml-ci-workflow-with-p3-step-name-audit: backlog
+  4-5-verify-api-publishing-pipeline-spectral-lint-deck-sync-end-to-end: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Documentation Synthesis, Migration Path & Vendor Cleanup
+  epic-5: backlog
+  5-1-strip-datadog-and-dynatrace-references-repository-wide: backlog
+  5-2-author-migration-md-1-legacy-cloud-only-local-first-synthesizing-epics-2-4: backlog
+  5-3-rewrite-top-level-readme-md-for-local-first-quickstart-and-federation-framing: backlog
+  5-4-verify-flask-onboarding-webapp-produces-schema-conformant-output-and-document-its-usage: backlog
+  epic-5-retrospective: optional

@@ -5,7 +5,7 @@ networks:
 services:
   minio:
     container_name: minio
-    image: 'bitnami/minio:latest'
+    image: 'quay.io/minio/minio:latest'
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -14,13 +14,27 @@ services:
       - MINIO_ROOT_PASSWORD=minio-root-password
       - MINIO_DEFAULT_BUCKETS=tfstate
     volumes:
-      - minio_data:/bitnami/minio/data
+      - minio_data:/data
       - ./scripts/create-minio-bucket.sh:/create-minio-bucket.sh
     networks:
       - konnect-automation-workshop
     labels:
       - dev.orbstack.domains=s3.minio.local
+    command: server /data --console-address ":9001"
 
+  # Secondary service to automatically create the bucket
+  minio-create-bucket:
+    image: 'minio/mc'
+    depends_on:
+      - minio
+    networks:
+      - konnect-automation-workshop
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set myminio http://minio:9000 minio-root-user minio-root-password) do echo '...waiting for minio...' && sleep 1; done;
+      /usr/bin/mc mb myminio/tfstate;
+      exit 0;
+      "
   vault:
     container_name: vault
     image: hashicorp/vault
@@ -30,15 +44,17 @@ services:
     healthcheck:
       retries: 5
     environment:
-      VAULT_ADDR: 'https://0.0.0.0:8300'
+      VAULT_ADDR: 'http://0.0.0.0:8300'
       VAULT_DEV_ROOT_TOKEN_ID: 'root'
       VAULT_TOKEN: ${VAULT_TOKEN:-root}
+      #VAULT_LOCAL_CONFIG: |-
+      #  {"storage": {"file": {"path": "/vault/file"}}, "listener": [{"tcp": { "address": "0.0.0.0:8300", "tls_disable": true}}], "default_lease_ttl": "168h", "max_lease_ttl": "720h", "ui": true}
       VAULT_LOCAL_CONFIG: |-
-        {"storage": {"file": {"path": "/vault/file"}}, "listener": [{"tcp": { "address": "0.0.0.0:8300", "tls_disable": true}}], "default_lease_ttl": "168h", "max_lease_ttl": "720h", "ui": true}
+        {"listener": [{"tcp": { "address": "0.0.0.0:8300", "tls_disable": true}}], "ui": true}
     cap_add:
         - IPC_LOCK
     volumes:
-      - vault_data:/data
+      #- vault_data:/vault/file
       - ./scripts/vault-pki-setup.sh:/vault-pki-setup.sh:rw
     networks:
       - konnect-automation-workshop

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 /Users/jordi.fernandez/github/kw-platform-ops/_bmad/scripts/resolve_customization.py --skill /Users/jordi.fernandez/github/kw-platform-ops/.claude/skills/bmad-create-architecture --key workflow.on_complete)"
+    ]
+  }
+}
