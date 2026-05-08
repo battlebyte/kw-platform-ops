@@ -1,5 +1,5 @@
 # generated: 2026-05-07
-# last_updated: 2026-05-08 (story 1-1 reached `done` after code review)
+# last_updated: 2026-05-08 (story 1-2 reached `done` after code review)
 # project: kw-platform-ops
 # project_key: NOKEY
 # tracking_system: file-system
@@ -45,7 +45,7 @@ development_status:
   # Epic 1: Konnect Provider Modernization (3.1.0 → 3.15)
   epic-1: in-progress
   1-1-audit-konnect-provider-3-15-schema-diffs-against-current-resource-usage: done
-  1-2-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-terraform-konnect-teams: backlog
+  1-2-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-terraform-konnect-teams: done
   1-3-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-github-actions-provision-konnect-resources-terraform: backlog
   1-4-implement-idempotent-001-konnect-3-15-rename-sh-state-migration-scripts-in-both-terraform-trees: backlog
   1-5-add-make-migrate-state-driver-with-applied-marker-file: backlog
