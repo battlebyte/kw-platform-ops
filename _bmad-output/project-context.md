@@ -25,7 +25,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 **Terraform**
 - Working directory: `terraform/konnect-teams/` (S3 backend, partial backend config in `config.s3.tfbackend`).
-- Provider pin: `kong/konnect = 3.1.0`. AWS provider region hardcoded to `eu-central-1` with `skip_credentials_validation/skip_metadata_api_check/skip_requesting_account_id = true`.
+- Provider pin: `kong/konnect = 3.15.0`. AWS provider region hardcoded to `eu-central-1` with `skip_credentials_validation/skip_metadata_api_check/skip_requesting_account_id = true`.
 - Vault provider used for system-account token storage (commented in `providers.tf`; configured via `VAULT_ADDR`/`VAULT_TOKEN` env vars).
 
 **Konnect**
@@ -69,7 +69,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Sanitize Konnect/team names before use: `tr '[:upper:]' '[:lower:]' | sed 's/[ _]/-/g'` is the established pattern (see `deploy-dp/action.yml`).
 
 **Terraform / HCL**
-- Pin provider versions explicitly in the `terraform { required_providers { ... } }` block — `kong/konnect` is currently pinned to `3.1.0`. Do not use `~>` or unpinned constraints for the Konnect provider; the schema changes between minor versions.
+- Pin provider versions explicitly in the `terraform { required_providers { ... } }` block — `kong/konnect` is currently pinned to `3.15.0`. Do not use `~>` or unpinned constraints for the Konnect provider; the schema changes between minor versions.
 - Use **partial backend configuration**: keep static keys in `config.s3.tfbackend` and pass dynamic keys (`bucket`, `key`, `region`) via `-backend-config=...` at `init` time. Never commit a fully-resolved `backend "s3"` block.
 - The standard apply pipeline is `init -upgrade` → `plan -out=tfplan` → `apply -auto-approve tfplan`. Always plan to a file and apply that file — do not `apply -auto-approve` without a saved plan.
 - YAML-driven resources: read team/portal definitions via `fileset(...)` + `yamldecode(file(...))` (see `terraform/konnect-teams/main.tf`). Always run `yq` validation **before** Terraform sees the YAML.
@@ -211,7 +211,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - ❌ Adding `continue-on-error: true` or `|| true` to validators, linters, or `terraform plan/apply` steps. These are quality gates — failures must surface.
 - ❌ `terraform apply` without a saved plan file. Always `plan -out=tfplan` first, then `apply tfplan`.
 - ❌ Renaming a `teams/<team>.yaml` file's top-level `name` without coordinating destruction — `for_each` keys by name; renames are destroy/create.
-- ❌ Pinning provider/action versions with `latest`, `~>`, or unbounded ranges for the Konnect provider. The current pin is `kong/konnect = 3.1.0` — keep it exact.
+- ❌ Pinning provider/action versions with `latest`, `~>`, or unbounded ranges for the Konnect provider. The current pin is `kong/konnect = 3.15.0` — keep it exact.
 - ❌ Mixing operator-only workflows into `.github/actions/`, or pushing reusable team-facing logic into `.github/workflows/`. The split is a security boundary.
 - ❌ Bypassing the YAML validator by pointing Terraform at a new YAML directory. Any new YAML source must have a validation gate first.
 
@@ -249,5 +249,5 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Update when the technology stack changes (Konnect provider bumps, Kong chart bumps, action version pins).
 - Review quarterly; prune stale entries.
 
-Last Updated: 2026-05-06
+Last Updated: 2026-05-09
 

@@ -1,5 +1,5 @@
 # generated: 2026-05-07
-# last_updated: 2026-05-08 (story 1-2 reached `done` after code review)
+# last_updated: 2026-05-09 (story 1-3 review complete; status → done)
 # project: kw-platform-ops
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-05-07"
-last_updated: "2026-05-08"
+last_updated: "2026-05-09"
 project: kw-platform-ops
 project_key: NOKEY
 tracking_system: file-system
@@ -46,7 +46,7 @@ development_status:
   epic-1: in-progress
   1-1-audit-konnect-provider-3-15-schema-diffs-against-current-resource-usage: done
   1-2-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-terraform-konnect-teams: done
-  1-3-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-github-actions-provision-konnect-resources-terraform: backlog
+  1-3-bump-konnect-provider-to-3-15-and-apply-schema-updates-in-github-actions-provision-konnect-resources-terraform: done
   1-4-implement-idempotent-001-konnect-3-15-rename-sh-state-migration-scripts-in-both-terraform-trees: backlog
   1-5-add-make-migrate-state-driver-with-applied-marker-file: backlog
   1-6-verify-clean-plan-against-fresh-local-minio-backend-and-author-migration-md-2: backlog

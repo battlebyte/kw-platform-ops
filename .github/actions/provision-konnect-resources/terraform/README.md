@@ -54,7 +54,7 @@ Environment variables expected (can be exported or provided by your CI):
 - KONNECT_SERVER_URL (also passed as TF_VAR_konnect_server_url)
 - TF_VAR_team_name, TF_VAR_konnect_region, TF_VAR_gh_workspace_path, TF_VAR_config_file
 
-Provider pins to `kong/konnect` v3.1.0.
+Provider pins to `kong/konnect` v3.15.0.
 
 ### Thin-slice plan/apply with TF_VAR env
 
