@@ -43,9 +43,14 @@ clean: stop ## Clean everything up
 test-validator: ## Run provisioner manifest validation checks
 	@./test/provisioning/validate-config_test.sh
 
+migrate-state: ## Run pending Terraform state migrations in both trees (outer → inner)
+	@./scripts/run-migrations.sh terraform/konnect-teams
+	@./scripts/run-migrations.sh .github/actions/provision-konnect-resources/terraform
+	@echo "[migrate-state] done."
+
 help: ## Show this help
 	@echo "Available targets:"
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make <target>\n\n"} \
 	/^[a-zA-Z_-]+:.*##/ { printf "  %-15s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-.PHONY: prepare actrc prep-act-secrets docker vault-secrets vault-pki clean stop check-deps test-validator
+.PHONY: prepare actrc prep-act-secrets docker vault-secrets vault-pki clean stop check-deps test-validator migrate-state
