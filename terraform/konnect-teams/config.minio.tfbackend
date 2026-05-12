@@ -1,0 +1,20 @@
+# Local-default backend config: routes the s3 backend at the docker-compose MinIO
+# (http://localhost:9000, bucket "tfstate", auto-created by the minio-create-bucket
+# companion service in docker-compose.yaml). Pairs with config.s3.tfbackend (AWS
+# alternative). Select at init time:
+#
+#   terraform init -reconfigure -backend-config=config.minio.tfbackend
+#
+# See _bmad-output/planning-artifacts/architecture.md § D1, P1 for the abstraction.
+bucket = "tfstate"
+key = "konnect.tfstate"
+region = "main"
+endpoints = { s3 = "http://localhost:9000" }
+use_path_style = "true"
+encrypt = "false"
+skip_credentials_validation = "true"
+skip_metadata_api_check = "true"
+skip_region_validation = "true"
+skip_requesting_account_id = "true"
+access_key = "minio-root-user"
+secret_key = "minio-root-password"
