@@ -9,6 +9,10 @@ inputs:
     description: Path (basename, resolved relative to terraform-dir) of the partial-backend-config file passed to `terraform init -backend-config=...`. Default selects the local docker-compose MinIO backend; set to config.s3.tfbackend for AWS, or supply a custom path. Per pattern P1, callers should pin this via the TF_BACKEND_CONFIG env var pattern Story 2.3 introduces.
     required: false
     default: config.minio.tfbackend
+  backend-config-overrides:
+    description: 'Multiline string of key=value pairs (one per line). Each non-blank line is appended as an additional -backend-config flag to the terraform init invocation. Use for dynamic backend values (per-team bucket, dynamic key, per-environment region) that cannot be baked into the file referenced by backend-config-path. Empty by default.'
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -18,8 +22,9 @@ runs:
       working-directory: ${{ inputs.terraform-dir }}
       run: |
         set -euo pipefail
-        terraform init \
-          -reconfigure \
-          -input=false \
-          -upgrade \
-          -backend-config="${{ inputs.backend-config-path }}"
+        cmd=(terraform init -reconfigure -input=false -upgrade -backend-config="${{ inputs.backend-config-path }}")
+        while IFS= read -r override; do
+          [[ -z "$override" ]] && continue
+          cmd+=(-backend-config="$override")
+        done <<< "${{ inputs.backend-config-overrides }}"
+        "${cmd[@]}"

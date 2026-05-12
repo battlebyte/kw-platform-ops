@@ -21,12 +21,16 @@ jobs:
       KONNECT_SERVER_URL: ${{ vars.KONNECT_SERVER_URL }}
       KONNECT_TOKEN: ${{ secrets.KONNECT_TOKEN }}
 
+      # Backend selection — defaults to MinIO for local act runs; set vars.TF_BACKEND_CONFIG=config.s3.tfbackend for AWS
+      TF_BACKEND_CONFIG: ${{ vars.TF_BACKEND_CONFIG || 'config.minio.tfbackend' }}
+
       # Hashicorp Vault related variables
       # Used for configuring TF Vault provider
       VAULT_ADDR: ${{ vars.VAULT_ADDR }}
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
       # Terraform state S3 bucket
+      # Transitional — consumed only by the gated bucket-creation step below; Story 2.4 (create-state-bucket.sh) will collapse this duplication with config.s3.tfbackend.
       AWS_S3_BUCKET: "kw.konnect.teams"
 
     steps:
@@ -108,20 +112,17 @@ jobs:
         shell: bash
 
       - name: Ensure TF state S3 bucket exists
+        if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
         shell: bash
         run: |
           ./create-s3-bucket.sh ${{ env.AWS_S3_BUCKET }}
         working-directory: ${{ github.workspace }}/scripts
 
       - name: Terraform Init
-        shell: bash
-        run: |
-          terraform init -upgrade \
-            -backend-config=config.s3.tfbackend \
-            -backend-config="bucket=${{ env.AWS_S3_BUCKET }}" \
-            -backend-config="key=tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}"
-        working-directory: ${{env.TERRAFORM_DIR}}
+        uses: ./.github/actions/init-terraform
+        with:
+          terraform-dir: ${{ env.TERRAFORM_DIR }}
+          backend-config-path: ${{ env.TF_BACKEND_CONFIG }}
 
       - name: Terraform Plan
         shell: bash

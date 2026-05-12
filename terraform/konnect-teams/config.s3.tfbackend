@@ -1,6 +1,13 @@
-bucket = "tfstate"
+# AWS-S3 backend config: routes the s3 backend at the canonical AWS-hosted state
+# bucket "kw.konnect.teams" in eu-central-1. Pairs with config.minio.tfbackend (local
+# docker-compose MinIO; default). Select at init time:
+#
+#   terraform init -reconfigure -backend-config=config.s3.tfbackend
+#
+# See _bmad-output/planning-artifacts/architecture.md § D1, P1 for the abstraction.
+bucket = "kw.konnect.teams"
 key = "konnect.tfstate"
-region = "main"
+region = "eu-central-1"
 use_path_style = "true"
 encrypt = "false"
 skip_region_validation = "true"

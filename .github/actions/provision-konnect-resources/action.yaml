@@ -107,13 +107,13 @@ runs:
         echo "TF_VAR_team_name=${{ inputs.konnect-team-name }}" >> $GITHUB_ENV
 
     - name: Terraform Init
-      shell: bash
-      run: |
-        terraform init -input=false -upgrade \
-        -backend-config=config.s3.tfbackend \
-        -backend-config="bucket=kw.konnect.team.resources.${{ inputs.konnect-team-name }}" \
-        -backend-config="region=${{ inputs.aws-region }}" \
-      working-directory: ${{ github.action_path }}/terraform
+      uses: ./.github/actions/init-terraform
+      with:
+        terraform-dir: ${{ github.action_path }}/terraform
+        backend-config-path: ${{ env.TF_BACKEND_CONFIG || 'config.minio.tfbackend' }}
+        backend-config-overrides: |
+          bucket=kw.konnect.team.resources.${{ inputs.konnect-team-name }}
+          region=${{ inputs.aws-region }}
 
     - name: Terraform Plan
       shell: bash

@@ -29,6 +29,9 @@ jobs:
       KONNECT_SERVER_URL: ${{ vars.KONNECT_SERVER_URL }}
       KONNECT_TOKEN: ${{ secrets.KONNECT_TOKEN }}
 
+      # Backend selection — defaults to MinIO for local act runs; set vars.TF_BACKEND_CONFIG=config.s3.tfbackend for AWS
+      TF_BACKEND_CONFIG: ${{ vars.TF_BACKEND_CONFIG || 'config.minio.tfbackend' }}
+
       # Hashicorp Vault related variables
       # Used for configuring TF Vault provider
       VAULT_ADDR: ${{ vars.VAULT_ADDR }}
@@ -52,6 +55,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Ensure TF state S3 bucket exists
+        if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
         shell: bash
         run: |
           ./create-s3-bucket.sh ${{ env.AWS_S3_BUCKET }}
