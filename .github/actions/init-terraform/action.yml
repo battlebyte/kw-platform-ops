@@ -1,0 +1,25 @@
+name: init-terraform
+description: Initialize Terraform in a target directory using a partial-backend-config file. Pairs with the two-file backend abstraction (config.minio.tfbackend for local MinIO; config.s3.tfbackend for AWS S3) introduced by architecture D1 / pattern P1.
+
+inputs:
+  terraform-dir:
+    description: Absolute path to the Terraform root module directory to initialize. Typically ${{ github.workspace }}/terraform/<domain> when called from a workflow, or ${{ github.action_path }}/terraform when called from a nested composite action.
+    required: true
+  backend-config-path:
+    description: Path (basename, resolved relative to terraform-dir) of the partial-backend-config file passed to `terraform init -backend-config=...`. Default selects the local docker-compose MinIO backend; set to config.s3.tfbackend for AWS, or supply a custom path. Per pattern P1, callers should pin this via the TF_BACKEND_CONFIG env var pattern Story 2.3 introduces.
+    required: false
+    default: config.minio.tfbackend
+
+runs:
+  using: composite
+  steps:
+    - name: Terraform Init
+      shell: bash
+      working-directory: ${{ inputs.terraform-dir }}
+      run: |
+        set -euo pipefail
+        terraform init \
+          -reconfigure \
+          -input=false \
+          -upgrade \
+          -backend-config="${{ inputs.backend-config-path }}"

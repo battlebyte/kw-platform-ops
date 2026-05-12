@@ -1,5 +1,5 @@
 # generated: 2026-05-07
-# last_updated: 2026-05-12 (story 2-1: ready-for-dev → in-progress → review → done (code-review complete; 1 patch applied))
+# last_updated: 2026-05-12 (story 2-2: review → done (code-review complete))
 # project: kw-platform-ops
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-05-07"
-last_updated: "2026-05-12"  # story 2-1: ready-for-dev → in-progress → review → done (code-review complete; 1 patch applied)
+last_updated: "2026-05-12"  # story 2-2: review → done (code-review complete)
 project: kw-platform-ops
 project_key: NOKEY
 tracking_system: file-system
@@ -55,7 +55,7 @@ development_status:
   # Epic 2: Local-First Demo Bootstrap (Clone-to-First-Team in < 20 min)
   epic-2: in-progress
   2-1-add-config-minio-tfbackend-to-both-terraform-trees-alongside-existing-config-s3-tfbackend: done
-  2-2-create-shared-init-terraform-composite-action: backlog
+  2-2-create-shared-init-terraform-composite-action: done
   2-3-rewire-platform-workflows-to-use-init-terraform-and-tf-backend-config: backlog
   2-4-rename-create-s3-bucket-sh-create-state-bucket-sh-with-minio-aws-support: backlog
   2-5-add-act-secrets-example-template-and-update-prep-script: backlog
