@@ -39,6 +39,7 @@ jobs:
 
       # Terraform state S3 bucket
       AWS_S3_BUCKET: "kw.konnect.dev-portal-terraform-state"
+      BUCKET_BACKEND: aws
 
     steps:
       - name: Checkout repository
@@ -58,7 +59,7 @@ jobs:
         if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
         shell: bash
         run: |
-          ./create-s3-bucket.sh ${{ env.AWS_S3_BUCKET }}
+          ./create-state-bucket.sh ${{ env.AWS_S3_BUCKET }}
         working-directory: ${{ github.workspace }}/scripts
 
       - name: Provision Konnect Developer Portal resources

@@ -32,6 +32,7 @@ jobs:
       # Terraform state S3 bucket
       # Transitional — consumed only by the gated bucket-creation step below; Story 2.4 (create-state-bucket.sh) will collapse this duplication with config.s3.tfbackend.
       AWS_S3_BUCKET: "kw.konnect.teams"
+      BUCKET_BACKEND: aws
 
     steps:
       - name: Checkout repository
@@ -115,7 +116,7 @@ jobs:
         if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
         shell: bash
         run: |
-          ./create-s3-bucket.sh ${{ env.AWS_S3_BUCKET }}
+          ./create-state-bucket.sh ${{ env.AWS_S3_BUCKET }}
         working-directory: ${{ github.workspace }}/scripts
 
       - name: Terraform Init
