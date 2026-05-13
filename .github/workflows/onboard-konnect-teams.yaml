@@ -57,16 +57,16 @@ jobs:
         run: |
           # Find all YAML files in the config directory
           yaml_files=$(find ${{ env.TF_VAR_resources_path }} -name "*.yaml" -o -name "*.yml")
-          
+
           if [ -z "$yaml_files" ]; then
             echo "No YAML files found in ${{ env.TF_VAR_resources_path }}"
             exit 0
           fi
-          
+
           echo "Found YAML files to validate:"
           echo "$yaml_files"
           echo ""
-          
+
           # Validate each YAML file
           for config_file in $yaml_files; do
             echo "Validating $config_file..."

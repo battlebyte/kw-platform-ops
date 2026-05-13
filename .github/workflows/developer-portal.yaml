@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action to perform'
+        description: "Action to perform"
         required: true
         type: choice
-        default: 'provision'
+        default: "provision"
         options:
-          - 'provision'
-          - 'destroy'
+          - "provision"
+          - "destroy"
   push:
     branches:
       - main
