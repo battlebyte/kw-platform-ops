@@ -1,101 +1,51 @@
 #!/bin/bash
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SECRET_FILE="${REPO_ROOT}/act.secrets"
+EXAMPLE_FILE="${REPO_ROOT}/act.secrets.example"
 
-secret_file="act.secrets"
-
-if [[ -f "$secret_file" ]]; then
-    echo "$secret_file file already exists."
+if [[ -f "$SECRET_FILE" ]]; then
+    echo "act.secrets already exists — skipping. Edit it directly to update secrets."
     exit 0
 fi
 
-if ! command -v gh &> /dev/null; then
-    echo $'\n'"GitHub CLI not found. Please enter your GitHub token."
-    read -s -p $'\n'"Enter GitHub token: " GITHUB_TOKEN
-    while [[ -z "$GITHUB_TOKEN" ]]; do
-        read -s -p $'\n'"GitHub token cannot be empty. Please enter again: " GITHUB_TOKEN
-    done
-else
-    GITHUB_TOKEN=$(gh auth token 2>/dev/null || true)
-    if [[ $? -ne 0 || -z "$GITHUB_TOKEN" ]]; then
-        echo $'\n'"GitHub token not found or user not logged in. Attempting to log in..."
-        gh auth login
-        GITHUB_TOKEN=$(gh auth token 2>/dev/null)
-        if [[ -z "$GITHUB_TOKEN" ]]; then
-            read -s -p $'\n'"Enter GitHub token: " GITHUB_TOKEN
-            while [[ -z "$GITHUB_TOKEN" ]]; do
-                read -s -p $'\n'"GitHub token cannot be empty. Please enter again: " GITHUB_TOKEN
-            done
-        else
-            echo $'\n'"Using GitHub token from gh auth."
-        fi
-    else
-        echo $'\n'"Using GitHub token from gh auth."
-    fi
-fi
-
-# Prompt for optional github_org
-read -p $'\n'"Enter GitHub organization (optional): " github_org
-github_org=${github_org:-null}
-
-read -s -p $'\n'"Enter konnect personal access token: " konnect_token
-while [[ -z "$konnect_token" ]]; do
-    read -s -p $'\n'"konnect personal access token cannot be empty. Please enter again: " konnect_token
-done
-
-read -s -p $'\n'"Enter s3 access key: " s3_access_key
-while [[ -z "$s3_access_key" ]]; do
-    read -s -p $'\n'"s3 access key cannot be empty. Please enter again: " s3_access_key
-done
-
-read -s -p $'\n'"Enter s3 secret key: " s3_secret_key
-while [[ -z "$s3_secret_key" ]]; do
-    read -s -p $'\n'"s3 secret key cannot be empty. Please enter again: " s3_secret_key
-done
-
-read -s -p $'\n'"Enter Docker username (default: _json_key): " docker_username
-docker_username=${docker_username:-_json_key}
-
-read -s -p $'\n'"Enter Docker password (default: secret): " docker_password
-docker_password=${docker_password:-secret}
-
-read -s -p $'\n'"Enter Vault token (default: root): " vault_token
-vault_token=${vault_token:-root}
-
-HOST_IP=$(./scripts/get-host-ip.sh)
-
-read -s -p $'\n'"Enter OpenID Connect issuer (default: http://$HOST_IP:8080/realms/demo/.well-known/openid-configuration): " oidc_issuer
-oidc_issuer=${oidc_issuer:-http://$HOST_IP:8080/realms/demo/.well-known/openid-configuration}
-
-read -s -p $'\n'"Enter Datadog API key (optional): " dd_api_key
-
-read -s -p $'\n'"Enter Dynatrace API token (optional): " dt_api_token
-
-if [[ -z "$konnect_token" || -z "$s3_access_key" || -z "$s3_secret_key" ]]; then
-    echo $'\n'"One or more variables are empty. Exiting..."
+if [[ ! -f "$EXAMPLE_FILE" ]]; then
+    echo "ERROR: act.secrets.example not found at ${EXAMPLE_FILE}."
+    echo "Ensure the repository is fully checked out and act.secrets.example exists at the repo root."
     exit 1
 fi
 
-read -s -p $'\n'"Enter K8s engine (orbstack/kind, default: orbstack): " kube_context
-while [[ "$kube_context" != "orbstack" && "$kube_context" != "kind" && -n "$kube_context" ]]; do
-    read -s -p $'\n'"Invalid input. Please enter 'orbstack' or 'kind' (default: orbstack): " kube_context
-done
-kube_context=${kube_context:-orbstack}
-
-cat << EOF > "$secret_file"
-KONNECT_PAT=$konnect_token
-GITHUB_TOKEN=$GITHUB_TOKEN
-S3_ACCESS_KEY=$s3_access_key
-S3_SECRET_KEY=$s3_secret_key
-DOCKER_USERNAME=$docker_username
-DOCKER_PASSWORD=$docker_password
-VAULT_TOKEN=$vault_token
-OIDC_ISSUER=$oidc_issuer
-DD_API_KEY=$dd_api_key
-DT_API_TOKEN=$dt_api_token
-KUBE_CONTEXT=$kube_context
-EOF
-
-if [[ "$github_org" != "null" ]]; then
-    echo "GITHUB_ORG=$github_org" >> "$secret_file"
+if [[ ! -r "$EXAMPLE_FILE" ]]; then
+    echo "ERROR: act.secrets.example exists but is not readable (check file permissions)."
+    exit 1
 fi
+
+trap 'rm -f "$SECRET_FILE"' ERR
+cp "$EXAMPLE_FILE" "$SECRET_FILE"
+chmod 600 "$SECRET_FILE"
+trap - ERR
+
+cat <<'MSG'
+
+act.secrets created from act.secrets.example.
+
+Before running any workflow, open act.secrets and fill in:
+
+  KONNECT_TOKEN   — Required. Your Konnect personal access token.
+                    Obtain one at: https://cloud.konghq.com/tokens
+
+  GITHUB_ORG      — Required. Your GitHub organisation name.
+                    Used by scripts/vault-pki-setup.sh to scope role bindings.
+
+The following fields are pre-filled with local docker-compose defaults:
+
+  VAULT_TOKEN=root              (Vault dev container root token)
+  AWS_ACCESS_KEY_ID=minio-root-user     (MinIO default credential)
+  AWS_SECRET_ACCESS_KEY=minio-root-password  (MinIO default credential)
+
+Change the AWS_ fields only when targeting a real AWS S3 backend
+(TF_BACKEND_CONFIG=config.s3.tfbackend).
+
+MSG

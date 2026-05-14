@@ -1,5 +1,5 @@
 # generated: 2026-05-07
-# last_updated: 2026-05-13 (story 2-4: review → done (code-review complete))
+# last_updated: 2026-05-14 (story 2-5: ready-for-dev → review)
 # project: kw-platform-ops
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-05-07"
-last_updated: "2026-05-13"  # story 2-4: review → done (code-review complete)
+last_updated: "2026-05-14"  # story 2-5: review → done
 project: kw-platform-ops
 project_key: NOKEY
 tracking_system: file-system
@@ -58,7 +58,7 @@ development_status:
   2-2-create-shared-init-terraform-composite-action: done
   2-3-rewire-platform-workflows-to-use-init-terraform-and-tf-backend-config: done
   2-4-rename-create-s3-bucket-sh-create-state-bucket-sh-with-minio-aws-support: done
-  2-5-add-act-secrets-example-template-and-update-prep-script: backlog
+  2-5-add-act-secrets-example-template-and-update-prep-script: done
   2-6-end-to-end-verification-of-make-prepare-against-minio-vault-on-a-clean-macos-clone: backlog
   epic-2-retrospective: optional
 
