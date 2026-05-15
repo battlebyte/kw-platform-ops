@@ -5,9 +5,22 @@ set -e
 # inside the vault docker container.
 # Usage: vault-pki-setup.sh <VAULT_ADDR> <VAULT_TOKEN> <GITHUB_ORG>
 
-VAULT_ADDR="${1:-http://0.0.0.0:8300}"
+VAULT_PKI_URL="${1:-}"        # external URL embedded in PKI cert/CRL config (passed by Makefile)
 VAULT_TOKEN="${2:-root}"
 GITHUB_ORG="${3:-}"
+
+# Source .env if present (allows local overrides inside the container)
+if [ -f "/.env" ]; then
+    # shellcheck source=/dev/null
+    . "/.env"
+fi
+
+# VAULT_ADDR: prefer env var already set (docker-compose injects http://0.0.0.0:8300),
+# then fall back to localhost:8300
+VAULT_ADDR="${VAULT_ADDR:-http://localhost:8300}"
+
+# PKI URL defaults to VAULT_ADDR when not explicitly passed
+VAULT_PKI_URL="${VAULT_PKI_URL:-${VAULT_ADDR}}"
 
 PKI_MOUNT_PATH="pki"
 CERT_TTL="43800h"
@@ -53,8 +66,8 @@ fi
 
 # Configure URLs
 vault write "${PKI_MOUNT_PATH}/config/urls" \
-    issuing_certificates="${VAULT_ADDR}/v1/${PKI_MOUNT_PATH}/ca" \
-    crl_distribution_points="${VAULT_ADDR}/v1/${PKI_MOUNT_PATH}/crl"
+    issuing_certificates="${VAULT_PKI_URL}/v1/${PKI_MOUNT_PATH}/ca" \
+    crl_distribution_points="${VAULT_PKI_URL}/v1/${PKI_MOUNT_PATH}/crl"
 echo "CA endpoint URLs configured."
 
 # Create role if not already present

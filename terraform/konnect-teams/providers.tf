@@ -12,8 +12,11 @@ provider "aws" {
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_requesting_account_id  = true
-  # AWS credentials will be picked up from:
-  # - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-  # - AWS credentials file (~/.aws/credentials)
-  # - IAM roles (if running on EC2)
+
+  dynamic "endpoints" {
+    for_each = var.s3_endpoint != "" ? [var.s3_endpoint] : []
+    content {
+      s3 = endpoints.value
+    }
+  }
 }

@@ -3,17 +3,10 @@ set -e
 
 config=$(cat "$1" | yq -r .)
 
-# Validate metadata.type
-metadata_type=$(echo "$config" | yq -r '.metadata.type')
-if [ "$metadata_type" != "konnect.team.resources" ]; then
-  echo "Invalid metadata.type: $metadata_type. Expected 'konnect.team.resources'"
-  exit 1
-fi
-
-# Validate metadata.team is required
-metadata_team=$(echo "$config" | yq -r '.metadata.team')
-if [ -z "$metadata_team" ]; then
-  echo "metadata.team is required"
+# Validate top-level team field is required
+team=$(echo "$config" | yq -r '.team')
+if [ -z "$team" ] || [ "$team" = "null" ]; then
+  echo "Missing required field: 'team'"
   exit 1
 fi
 

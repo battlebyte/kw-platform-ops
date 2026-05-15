@@ -1,0 +1,9 @@
+team: ground-operations
+description: Konnect resources for the Ground Operations team
+
+resources:
+  - type: konnect.control_plane
+    name: ground-operations-cp
+    description: Ground Operations control plane
+    labels:
+      team: ground-operations

@@ -3,7 +3,7 @@ description: Initialize Terraform in a target directory using a partial-backend-
 
 inputs:
   terraform-dir:
-    description: Absolute path to the Terraform root module directory to initialize. Typically ${{ github.workspace }}/terraform/<domain> when called from a workflow, or ${{ github.action_path }}/terraform when called from a nested composite action.
+    description: Absolute path to the Terraform root module directory to initialize.
     required: true
   backend-config-path:
     description: Path (basename, resolved relative to terraform-dir) of the partial-backend-config file passed to `terraform init -backend-config=...`. Default selects the local docker-compose MinIO backend; set to config.s3.tfbackend for AWS, or supply a custom path. Per pattern P1, callers should pin this via the TF_BACKEND_CONFIG env var pattern Story 2.3 introduces.

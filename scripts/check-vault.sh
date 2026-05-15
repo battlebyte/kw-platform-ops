@@ -5,8 +5,15 @@
 # If the response status code is not 200, it means that Vault is not available.
 # The script will retry checking the availability of Vault until it becomes available or the maximum number of retries is reached.
 
+# Source .vars from the project root if it exists — allows local overrides (e.g.
+# VAULT_ADDR=http://localhost:8300) to take precedence over the Makefile export.
+if [ -f ".vars" ]; then
+    # shellcheck source=/dev/null
+    . ".vars"
+fi
+
 if [[ -z "$VAULT_ADDR" ]]; then
-    VAULT_ADDR="https://vault.kong-cx.com"
+    VAULT_ADDR="http://localhost:8300"
 fi
 MAX_RETRIES=10
 RETRY_INTERVAL=5  # in seconds

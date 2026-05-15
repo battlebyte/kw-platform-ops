@@ -27,36 +27,19 @@ resource "konnect_system_account_team" "this" {
   account_id = konnect_system_account.this.id
 }
 
-### Add the control plane creator role if team has the entitlement
-resource "konnect_system_account_role" "cp_creators" {
-  count            = contains(var.team_entitlements, "konnect.control_plane") ? 1 : 0
+### Add control plane roles — driven entirely by the control_plane_roles variable.
+### Each entry specifies entity_id, region, and role, giving full flexibility
+### (e.g. Admin on a specific CP in us, Creator on all CPs in eu, etc.)
+resource "konnect_system_account_role" "cp_roles" {
+  for_each = {
+    for r in var.control_plane_roles :
+    "${r.role}-${r.entity_id}-${r.region}" => r
+  }
 
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
+  entity_id        = each.value.entity_id
+  entity_region    = each.value.region
   entity_type_name = "Control Planes"
-  role_name        = "Creator"
-  account_id       = konnect_system_account.this.id
-}
-
-### Add the control plane viewer role if team has the entitlement
-resource "konnect_system_account_role" "cp_viewers" {
-  count            = contains(var.team_entitlements, "konnect.control_plane") ? 1 : 0
-
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
-  entity_type_name = "Control Planes"
-  role_name        = "Viewer"
-  account_id       = konnect_system_account.this.id
-}
-
-### Add the control plane Admin if the team has the entitlement
-resource "konnect_system_account_role" "cp_admins" {
-  count            = contains(var.team_entitlements, "konnect.control_plane.admin") ? 1 : 0
-
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
-  entity_type_name = "Control Planes"
-  role_name        = "Admin"
+  role_name        = each.value.role
   account_id       = konnect_system_account.this.id
 }
 

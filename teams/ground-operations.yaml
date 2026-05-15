@@ -1,14 +1,14 @@
 type: konnect.team
-name: flight-operations
-description: Flight ops teams
+name: ground-operations
+description: Ground ops teams
 entitlements:
 - konnect.api
 control_plane_roles:
 - entity_id: "*"
   region: eu
   role: Creator
-- entity_id: "flight-operations-cp-dev"
+- entity_id: "*"
   region: eu
   role: Viewer
 labels:
-  TID: KTEAM_00001
+  TID: KTEAM_00002

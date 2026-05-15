@@ -1,0 +1,19 @@
+team: flight-operations
+description: Konnect resources for the Flight Operations team
+
+resources:
+  - type: konnect.control_plane
+    name: flight-operations-cp-prod
+    description: Flight Operations control plane
+    labels:
+      team: flight-operations
+  - type: konnect.control_plane
+    name: flight-operations-cp-qa
+    description: Flight Operations control plane
+    labels:
+      team: flight-operations
+  - type: konnect.control_plane
+    name: flight-operations-cp-dev
+    description: Flight Operations control plane
+    labels:
+      team: flight-operations

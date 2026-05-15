@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     konnect = {
-      source = "kong/konnect"
+      source  = "kong/konnect"
       version = "3.15.0"
     }
   }
@@ -9,11 +9,15 @@ terraform {
 
 locals {
   config_files = fileset("${var.resources_path}", "*.yaml")
-  teams               = [
-    for file in local.config_files : 
+  teams = [
+    for file in local.config_files :
     yamldecode(file("${var.resources_path}/${file}"))
   ]
-  sanitized_team_names = { for team in local.teams : team.name => replace(lower(team.name), " ", "-") }
+  active_teams = [
+    for team in local.teams :
+    team if !lookup(team, "offboarded", false)
+  ]
+  sanitized_team_names = { for team in local.active_teams : team.name => replace(lower(team.name), " ", "-") }
 }
 
 
@@ -22,7 +26,7 @@ locals {
 ################################################################################
 
 resource "konnect_team" "this" {
-  for_each = { for team in local.teams : team.name => team }
+  for_each = { for team in local.active_teams : team.name => team }
 
   description = lookup(each.value, "description", null)
   labels = merge(lookup(each.value, "labels", {
@@ -40,9 +44,10 @@ module "system-account" {
 
   source = "./modules/system-account"
 
-  team_name         = local.sanitized_team_names[each.value.name]
-  team_entitlements = try([for t in local.teams : t.entitlements if t.name == each.value.name][0], [])
-  team_id           = each.value.id
+  team_name           = local.sanitized_team_names[each.value.name]
+  team_entitlements   = try([for t in local.active_teams : t.entitlements if t.name == each.value.name][0], [])
+  team_id             = each.value.id
+  control_plane_roles = try([for t in local.active_teams : t.control_plane_roles if t.name == each.value.name][0], [])
 }
 
 
@@ -71,11 +76,11 @@ module "vault" {
 
 # Create S3 bucket
 resource "aws_s3_bucket" "my_bucket" {
-  for_each = konnect_team.this
-  bucket = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
+  for_each = var.create_team_buckets ? konnect_team.this : {}
+  bucket   = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
 
   tags = {
-    Name        = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
+    Name = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
   }
 }
 
