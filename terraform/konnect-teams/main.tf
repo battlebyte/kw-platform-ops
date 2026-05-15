@@ -45,9 +45,10 @@ module "system-account" {
   source = "./modules/system-account"
 
   team_name           = local.sanitized_team_names[each.value.name]
-  team_entitlements   = try([for t in local.active_teams : t.entitlements if t.name == each.value.name][0], [])
   team_id             = each.value.id
   control_plane_roles = try([for t in local.active_teams : t.control_plane_roles if t.name == each.value.name][0], [])
+  api_roles           = try([for t in local.active_teams : t.api_roles if t.name == each.value.name][0], [])
+  api_product_roles   = try([for t in local.active_teams : t.api_product_roles if t.name == each.value.name][0], [])
 }
 
 

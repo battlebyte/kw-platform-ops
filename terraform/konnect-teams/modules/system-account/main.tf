@@ -43,58 +43,31 @@ resource "konnect_system_account_role" "cp_roles" {
   account_id       = konnect_system_account.this.id
 }
 
-### Add the api product creator role if team has the entitlement
-resource "konnect_system_account_role" "ap_creators" {
-  count = contains(var.team_entitlements, "konnect.api_product") ? 1 : 0
+### Add API roles — driven entirely by the api_roles variable.
+resource "konnect_system_account_role" "api_roles" {
+  for_each = {
+    for r in var.api_roles :
+    "${r.role}-${r.entity_id}-${r.region}" => r
+  }
 
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
+  entity_id        = each.value.entity_id
+  entity_region    = each.value.region
+  entity_type_name = "APIs"
+  role_name        = each.value.role
+  account_id       = konnect_system_account.this.id
+}
+
+### Add API Product roles — driven entirely by the api_product_roles variable.
+resource "konnect_system_account_role" "api_product_roles" {
+  for_each = {
+    for r in var.api_product_roles :
+    "${r.role}-${r.entity_id}-${r.region}" => r
+  }
+
+  entity_id        = each.value.entity_id
+  entity_region    = each.value.region
   entity_type_name = "API Products"
-  role_name        = "Creator"
-  account_id       = konnect_system_account.this.id
-}
-
-### Add the api product viewer role to every team system account
-resource "konnect_system_account_role" "ap_viewers" {
-  count = contains(var.team_entitlements, "konnect.api_product") ? 1 : 0
-
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
-  entity_type_name = "API Products"
-  role_name        = "Viewer"
-  account_id       = konnect_system_account.this.id
-}
-
-### Add the api creator role if team has the entitlement
-resource "konnect_system_account_role" "api_creators" {
-  count = contains(var.team_entitlements, "konnect.api") ? 1 : 0
-
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
-  entity_type_name = "APIs"
-  role_name        = "Creator"
-  account_id       = konnect_system_account.this.id
-}
-
-### Add the api viewer role if team has the entitlement
-resource "konnect_system_account_role" "api_viewers" {
-  count = contains(var.team_entitlements, "konnect.api") ? 1 : 0
-
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
-  entity_type_name = "APIs"
-  role_name        = "Viewer"
-  account_id       = konnect_system_account.this.id
-}
-
-### Add the api publisher role if team has the entitlement
-resource "konnect_system_account_role" "api_publishers" {
-  count = contains(var.team_entitlements, "konnect.api") ? 1 : 0
-
-  entity_id        = "*"
-  entity_region    = "eu" # Hardcoded for now
-  entity_type_name = "APIs"
-  role_name        = "Publisher"
+  role_name        = each.value.role
   account_id       = konnect_system_account.this.id
 }
 
