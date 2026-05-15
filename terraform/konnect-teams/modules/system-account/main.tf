@@ -45,7 +45,7 @@ resource "konnect_system_account_role" "cp_roles" {
 
 ### Add the api product creator role if team has the entitlement
 resource "konnect_system_account_role" "ap_creators" {
-  count            = contains(var.team_entitlements, "konnect.api_product") ? 1 : 0
+  count = contains(var.team_entitlements, "konnect.api_product") ? 1 : 0
 
   entity_id        = "*"
   entity_region    = "eu" # Hardcoded for now
@@ -56,7 +56,7 @@ resource "konnect_system_account_role" "ap_creators" {
 
 ### Add the api product viewer role to every team system account
 resource "konnect_system_account_role" "ap_viewers" {
-  count            = contains(var.team_entitlements, "konnect.api_product") ? 1 : 0
+  count = contains(var.team_entitlements, "konnect.api_product") ? 1 : 0
 
   entity_id        = "*"
   entity_region    = "eu" # Hardcoded for now
@@ -67,7 +67,7 @@ resource "konnect_system_account_role" "ap_viewers" {
 
 ### Add the api creator role if team has the entitlement
 resource "konnect_system_account_role" "api_creators" {
-  count            = contains(var.team_entitlements, "konnect.api") ? 1 : 0
+  count = contains(var.team_entitlements, "konnect.api") ? 1 : 0
 
   entity_id        = "*"
   entity_region    = "eu" # Hardcoded for now
@@ -78,7 +78,7 @@ resource "konnect_system_account_role" "api_creators" {
 
 ### Add the api viewer role if team has the entitlement
 resource "konnect_system_account_role" "api_viewers" {
-  count            = contains(var.team_entitlements, "konnect.api") ? 1 : 0
+  count = contains(var.team_entitlements, "konnect.api") ? 1 : 0
 
   entity_id        = "*"
   entity_region    = "eu" # Hardcoded for now
@@ -89,7 +89,7 @@ resource "konnect_system_account_role" "api_viewers" {
 
 ### Add the api publisher role if team has the entitlement
 resource "konnect_system_account_role" "api_publishers" {
-  count            = contains(var.team_entitlements, "konnect.api") ? 1 : 0
+  count = contains(var.team_entitlements, "konnect.api") ? 1 : 0
 
   entity_id        = "*"
   entity_region    = "eu" # Hardcoded for now
