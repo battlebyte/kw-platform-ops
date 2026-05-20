@@ -77,8 +77,9 @@ module "vault" {
 
 # Create S3 bucket
 resource "aws_s3_bucket" "my_bucket" {
-  for_each = var.create_team_buckets ? konnect_team.this : {}
-  bucket   = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
+  for_each      = var.create_team_buckets ? konnect_team.this : {}
+  bucket        = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
+  force_destroy = true
 
   tags = {
     Name = "kw.konnect.team.resources.${local.sanitized_team_names[each.value.name]}"
