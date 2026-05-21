@@ -1,5 +1,15 @@
 # Deferred Work
 
+## Deferred from: code review of 3-2-migrate-yaml-to-sanofi-style-konnect-orgs-syntax (2026-05-21)
+
+- **(MED)** `konnect/orgs/konnect/portals.yaml:83` — Placeholder/gibberish domain `kongair.some-random-domain-347t783t5q53.com` in `robots` Sitemap URL. Faithfully migrated from `konnect/developer-portal/config.yaml` source. Real FQDN should replace this when the portal is deployed to production.
+- **(LOW)** `konnect/orgs/konnect/portals.yaml:79-80` — `Allow: /apis/` and `Allow: /docs/` are robots.txt no-ops per spec (everything not Disallowed is implicitly allowed). Noise in a security-adjacent file; remove or document intent.
+- **(LOW)** `konnect/orgs/konnect/portals.yaml:86-89` — `spec_renderer` enables `try_it_insomnia` and `try_it_ui` simultaneously. Doubled browser-side credential exposure; either disable one or document the dual-client decision. Faithfully migrated from source.
+- **(MED)** `konnect/orgs/konnect/teams.yaml` — All role entries use `entity_names: ["*"]` wildcard and hardcoded `entity_region: eu`. No least-privilege scoping and no multi-region support. Equivalent to legacy design; future teams should scope roles explicitly.
+- **(MED)** `konnect/orgs/konnect/teams.yaml` — `entity_type_name` and role `name` fields have no YAML-layer schema enforcement. A capitalisation typo or missing field silently produces null bindings at Terraform runtime. Add yq pre-flight guards for required role fields (`name`, `entity_type_name`) and empty `entity_names` lists.
+- **(MED)** `konnect/auth-identity/resources.yaml` — Retains `oidc_client_secret: my-client-secret` placeholder. Value is not a real secret but the pattern is dangerous. File is explicitly outside Story 3.2 scope; retire in Story 3.4.
+- **(LOW)** `konnect/orgs/konnect/portals.yaml` — `theme.colors` includes `secondary`, `accent`, `background`, `text` keys that are silently dropped by Terraform type coercion (`object({ primary = optional(string) })`). These values have no effect. Pre-existing issue; fix requires updating the `colors` object type in the portal customization module.
+
 ## Deferred from: code review of 1-1-audit-konnect-provider-3-15-schema-diffs-against-current-resource-usage (2026-05-08)
 
 - **(MED)** `modules/cloud_gateway_configuration/main.tf:1-7` and `modules/control_plane/main.tf:1-7` declare `kong/konnect` source without a `version` pin — they inherit from root. Pre-existing inheritance, not introduced by Story 1.1; flag for Story 1.2 / 1.3 to either pin explicitly or accept inheritance deliberately.

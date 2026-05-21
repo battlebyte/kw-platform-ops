@@ -74,6 +74,18 @@ portal_customizations:
           path: /community
           title: Community
           visibility: private
+    robots: |-
+      User-agent: *
+      Disallow: /admin/
+      Disallow: /internal/
+      Allow: /apis/
+      Allow: /docs/
+      Sitemap: https://api-portal.kongair.some-random-domain-347t783t5q53.com/sitemap.xml
+    spec_renderer:
+      infinite_scroll: true
+      show_schemas: true
+      try_it_insomnia: true
+      try_it_ui: true
     theme:
       colors:
         primary: "#1f2937"
