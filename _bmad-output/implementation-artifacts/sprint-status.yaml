@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-05-07"
-last_updated: "2026-05-21"  # sprint change proposal revised: drop epics 3/4/5, add new epic 3 (unified provisioning engine)
+last_updated: "2026-05-21"  # story 3-1 review findings resolved: review → done
 project: kw-platform-ops
 project_key: NOKEY
 tracking_system: file-system
@@ -71,8 +71,8 @@ development_status:
   # Epic 5: Documentation Synthesis — CANCELLED 2026-05-21 (deprioritised; existed in epics.md only)
 
   # Epic 3 (new): Unified Konnect Provisioning Engine
-  epic-3: backlog
-  3-1-build-unified-terraform-module: backlog
+  epic-3: in-progress
+  3-1-build-unified-terraform-module: done
   3-2-migrate-yaml-to-sanofi-style-konnect-orgs-syntax: backlog
   3-3-create-single-provision-konnect-resources-workflow: backlog
   3-4-verify-e2e-and-retire-obsolete-provisioning-paths: backlog

@@ -1,0 +1,18 @@
+# Local-default backend config: routes the s3 backend at the docker-compose MinIO
+# bucket "tfstate". Select at init time:
+#
+#   terraform init -reconfigure -backend-config=config.minio.tfbackend
+#
+# Story 3.1 uses one org-level state key instead of per-team buckets.
+bucket = "tfstate"
+key = "konnect/orgs/konnect/terraform.tfstate"
+region = "main"
+endpoints = { s3 = "http://localhost:9000" }
+use_path_style = "true"
+encrypt = "false"
+skip_credentials_validation = "true"
+skip_metadata_api_check = "true"
+skip_region_validation = "true"
+skip_requesting_account_id = "true"
+access_key = "minio-root-user"
+secret_key = "minio-root-password"

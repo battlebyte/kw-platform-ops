@@ -26,12 +26,6 @@ portal_customizations:
     css: >-
       .api-card { border: 2px solid #1f2937; border-radius: 8px; } .header {
       background: linear-gradient(90deg, #1f2937, #374151); }
-    js:
-      custom: >-
-        console.log('kongair Portal initialized'); window.kongairPortal = { version: '1.0.0' };
-      scripts:
-        - 'https://cdn.jsdelivr.net/npm/chart.js'
-        - 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js'
     layout: >-
       <!DOCTYPE html><html><head><title>{{title}}</title></head><body>
       <header>{{header}}</header><main>{{content}}</main>

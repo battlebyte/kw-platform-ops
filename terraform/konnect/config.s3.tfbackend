@@ -1,0 +1,15 @@
+# AWS-S3 backend config: routes the s3 backend at the shared Konnect state bucket.
+# Select at init time:
+#
+#   terraform init -reconfigure -backend-config=config.s3.tfbackend
+#
+# Story 3.1 uses one org-level state key instead of per-team buckets.
+bucket = "kw.konnect.terraform-state"
+key = "konnect/orgs/konnect/terraform.tfstate"
+region = "eu-central-1"
+use_path_style = "true"
+encrypt = "true"
+skip_region_validation = "true"
+skip_requesting_account_id = "true"
+skip_metadata_api_check = "true"
+skip_credentials_validation = "true"

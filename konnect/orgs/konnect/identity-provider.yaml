@@ -5,7 +5,7 @@ identity_provider:
   idp_type: oidc
   oidc_issuer_url: https://konghq.okta.com/
   oidc_client_id: my-client-id
-  oidc_client_secret: my-client-secret
+  oidc_client_secret_ref: idp_client_secret
   oidc_scopes:
     - openid
     - email
