@@ -2,7 +2,7 @@ terraform {
   required_providers {
     konnect = {
       source  = "kong/konnect"
-      version = "3.15.0"
+      version = "3.17.0"
     }
     konnect-beta = {
       source  = "Kong/konnect-beta"
@@ -64,6 +64,11 @@ locals {
   audit_log_destinations = [for resource in local.resources : resource if resource.type == "konnect.audit_log_destination"]
   audit_logs             = [for resource in local.resources : resource if resource.type == "konnect.audit_log"]
 
+  # Authentication & Identity
+  authentication_settings               = [for resource in local.resources : resource if resource.type == "konnect.authentication_settings"]
+  identity_providers                    = [for resource in local.resources : resource if resource.type == "konnect.identity_provider"]
+  identity_provider_team_group_mappings = [for resource in local.resources : resource if resource.type == "konnect.identity_provider_team_group_mapping"]
+
   # Integrations
   integration_instances                 = [for resource in local.resources : resource if resource.type == "konnect.integration_instance"]
   integration_instance_auth_configs     = [for resource in local.resources : resource if resource.type == "konnect.integration_instance_auth_config"]
@@ -78,9 +83,12 @@ locals {
   team_obj = var.konnect_access_token == "dummy" ? {
     id   = "dummy-team-id"
     name = var.team_name
-    } : {
+    } : length(jsondecode(data.terracurl_request.fetch_team.response).data) > 0 ? {
     id   = jsondecode(data.terracurl_request.fetch_team.response).data[0].id
     name = jsondecode(data.terracurl_request.fetch_team.response).data[0].name
+    } : {
+    id   = null
+    name = var.team_name
   }
 }
 
@@ -139,7 +147,7 @@ module "control_planes" {
   cluster_type  = lookup(each.value, "cluster_type", "CLUSTER_TYPE_HYBRID")
   auth_type     = lookup(each.value, "auth_type", "pki_client_certs")
 
-  team = jsondecode(data.terracurl_request.fetch_team.response).data[0]
+  team = local.team_obj
 }
 
 module "apis" {
@@ -706,10 +714,66 @@ module "api_publications" {
 
   for_each = { for pub in local.api_publications : "${pub.api_name}-${pub.portal_name}" => pub }
 
-  api_id                     = module.apis["${each.value.api_name}-${each.value.version}"].id
-  portal_id                  = lookup(each.value, "portal_id", null)
+  api_id    = module.apis["${each.value.api_name}-${each.value.version}"].id
+  portal_id = lookup(each.value, "portal_id", null)
   #auth_strategy_ids          = lookup(each.value, "auth_strategy_ids", null) != null ? [for name in each.value.auth_strategy_ids : module.application_auth_strategy[name].id] : null
   auth_strategy_ids          = lookup(each.value, "auth_strategy_ids", null)
   auto_approve_registrations = lookup(each.value, "auto_approve_registrations", null)
   visibility                 = lookup(each.value, "visibility", "private")
+}
+
+################################################################################
+# AUTHENTICATION & IDENTITY
+################################################################################
+
+module "authentication_settings" {
+  source = "./modules/authentication_settings"
+
+  # Singleton: at most one authentication_settings per org.
+  for_each = length(local.authentication_settings) > 0 ? { singleton = local.authentication_settings[0] } : {}
+
+  basic_auth_enabled      = lookup(each.value, "basic_auth_enabled", null)
+  idp_mapping_enabled     = lookup(each.value, "idp_mapping_enabled", null)
+  konnect_mapping_enabled = lookup(each.value, "konnect_mapping_enabled", null)
+  oidc_auth_enabled       = lookup(each.value, "oidc_auth_enabled", null)
+  saml_auth_enabled       = lookup(each.value, "saml_auth_enabled", null)
+}
+
+module "identity_providers" {
+  source = "./modules/identity_provider"
+
+  # Stable key: name if provided, otherwise idp_type (oidc|saml)
+  for_each = { for p in local.identity_providers : coalesce(lookup(p, "name", null), lookup(p, "idp_type", "unknown")) => p }
+
+  enabled               = lookup(each.value, "enabled", null)
+  login_path            = lookup(each.value, "login_path", null)
+  idp_type              = lookup(each.value, "idp_type", null)
+  oidc_issuer_url       = lookup(each.value, "oidc_issuer_url", null)
+  oidc_client_id        = lookup(each.value, "oidc_client_id", null)
+  oidc_client_secret    = lookup(each.value, "oidc_client_secret", null)
+  oidc_scopes           = lookup(each.value, "oidc_scopes", null)
+  oidc_claim_email      = lookup(lookup(each.value, "oidc_claim_mappings", {}), "email", null)
+  oidc_claim_groups     = lookup(lookup(each.value, "oidc_claim_mappings", {}), "groups", null)
+  oidc_claim_name       = lookup(lookup(each.value, "oidc_claim_mappings", {}), "name", null)
+  saml_idp_metadata_url = lookup(each.value, "saml_idp_metadata_url", null)
+  saml_idp_metadata_xml = lookup(each.value, "saml_idp_metadata_xml", null)
+}
+
+module "identity_provider_team_group_mappings" {
+  source = "./modules/identity_provider_team_group_mapping"
+
+  # Stable key: identity_provider_name:group
+  for_each = {
+    for m in local.identity_provider_team_group_mappings :
+    "${coalesce(lookup(m, "identity_provider_name", null), lookup(m, "identity_provider_id", ""))}:${m.group}" => m
+  }
+
+  group = each.value.group
+  identity_provider_id = try(
+    module.identity_providers[each.value.identity_provider_name].id,
+    each.value.identity_provider_id
+  )
+  team_id = each.value.team_id
+
+  depends_on = [module.identity_providers]
 }

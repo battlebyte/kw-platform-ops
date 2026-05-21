@@ -1,13 +1,11 @@
 type: konnect.team
 name: flight-operations
 description: Flight ops teams
+offboarded: false
 control_plane_roles:
 - entity_id: "*"
   region: eu
   role: Creator
-- entity_id: "flight-operations-cp-dev"
-  region: eu
-  role: Viewer
 api_roles:
 - entity_id: "*"
   region: eu

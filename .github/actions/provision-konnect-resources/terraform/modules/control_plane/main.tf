@@ -2,7 +2,7 @@ terraform {
   required_providers {
     konnect = {
       source  = "kong/konnect"
-      version = "3.15.0"
+      version = "3.17.0"
     }
   }
 }
@@ -68,8 +68,9 @@ resource "konnect_gateway_data_plane_client_certificate" "this" {
   depends_on = [time_sleep.delay]
 }
 
-# Store the Control Plane Information in Vault
+# Store the Control Plane Information in Vault (only when a team is provided)
 resource "vault_kv_secret_v2" "this" {
+  count               = var.team.name != "" ? 1 : 0
   mount               = "${replace(lower(var.team.name), " ", "-")}-kv"
   name                = "control-planes/${konnect_gateway_control_plane.this.name}"
   cas                 = 1

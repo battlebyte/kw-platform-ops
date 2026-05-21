@@ -1,0 +1,115 @@
+application_auth_strategies:
+  - name: kongair-api-auth-strategy
+    type: key_auth
+    display_name: KongAir API Key Auth
+    config:
+      key_names:
+        - apikey
+
+portals:
+  - name: kongair-api-dev-portal
+    display_name: KongAir Developer Portal
+    description: "KongAir developer portal. Find APIs and documentation for the KongAir airline."
+    authentication_enabled: true
+    auto_approve_applications: true
+    auto_approve_developers: true
+    default_api_visibility: "public"
+    default_application_auth_strategy_name: kongair-api-auth-strategy
+    default_page_visibility: "public"
+    force_destroy: false
+    labels:
+      scope: internal
+    rbac_enabled: true
+
+portal_customizations:
+  - portal_name: kongair-api-dev-portal
+    css: >-
+      .api-card { border: 2px solid #1f2937; border-radius: 8px; } .header {
+      background: linear-gradient(90deg, #1f2937, #374151); }
+    js:
+      custom: >-
+        console.log('kongair Portal initialized'); window.kongairPortal = { version: '1.0.0' };
+      scripts:
+        - 'https://cdn.jsdelivr.net/npm/chart.js'
+        - 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js'
+    layout: >-
+      <!DOCTYPE html><html><head><title>{{title}}</title></head><body>
+      <header>{{header}}</header><main>{{content}}</main>
+      <footer>{{footer}}</footer></body></html>
+    menu:
+      footer_bottom:
+        - external: false
+          path: /support
+          title: Support
+          visibility: public
+        - external: false
+          path: /about
+          title: About KongAir
+          visibility: public
+      footer_sections:
+        - items:
+            - external: true
+              path: /documentation
+              title: Documentation
+              visibility: public
+            - external: true
+              path: "https://github.com/Kong/kongair"
+              title: GitHub
+              visibility: public
+          title: Resources
+        - items:
+            - external: false
+              path: /contact
+              title: Contact Us
+              visibility: public
+            - external: false
+              path: /terms
+              title: Terms of Service
+              visibility: public
+          title: Legal
+      main:
+        - external: false
+          path: /apis
+          title: APIs
+          visibility: public
+        - external: false
+          path: /documentation
+          title: Documentation
+          visibility: public
+        - external: false
+          path: /community
+          title: Community
+          visibility: private
+    theme:
+      colors:
+        primary: "#1f2937"
+        secondary: "#374151"
+        accent: "#3b82f6"
+        background: "#f9fafb"
+        text: "#111827"
+      mode: light
+      name: KongAir Corporate Theme
+
+portal_pages:
+  - portal_name: kongair-api-dev-portal
+    slug: /documentation
+    title: Getting Started with KongAir APIs
+    description: A comprehensive guide to get started with KongAir APIs
+    content: |
+      # Getting Started with KongAir APIs
+
+      Welcome to the KongAir Developer Portal!
+    status: published
+    visibility: public
+
+portal_snippets:
+  - portal_name: kongair-api-dev-portal
+    name: auth-code-example
+    title: Authentication Code Example
+    description: Reusable code snippet showing how to authenticate with KongAir APIs
+    content: |
+      ```javascript
+      const API_KEY = 'your-api-key-here';
+      ```
+    status: published
+    visibility: public

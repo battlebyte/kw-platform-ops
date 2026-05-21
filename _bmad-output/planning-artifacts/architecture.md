@@ -316,14 +316,14 @@ Consistent format makes entries skimmable and lets the README anchor-link direct
 
 ### Enforcement
 
-| Pattern | Enforcement |
-|---|---|
-| P1 — backend selection | Code review + shared `init-terraform` composite action (see step-06) makes the right thing the easy thing |
-| P2 — paired inputs | Code review; `action.yml` schema declares both inputs with paired suffixes |
-| P3 — validate/lint/plan prefix | Mechanical: bypass lint (D5) keys off the leading word |
-| P4 — README structure | Mechanical: action-contract lint (D4) diffs README against `action.yml` |
-| P5 — MIGRATION.md entries | Code review; existing entries are the canonical examples |
-| P6 — state-migration scripts | `make migrate-state` driver + `set -euo pipefail` + idempotency reviewed in PR |
+| Pattern                        | Enforcement                                                                                               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| P1 — backend selection         | Code review + shared `init-terraform` composite action (see step-06) makes the right thing the easy thing |
+| P2 — paired inputs             | Code review; `action.yml` schema declares both inputs with paired suffixes                                |
+| P3 — validate/lint/plan prefix | Mechanical: bypass lint (D5) keys off the leading word                                                    |
+| P4 — README structure          | Mechanical: action-contract lint (D4) diffs README against `action.yml`                                   |
+| P5 — MIGRATION.md entries      | Code review; existing entries are the canonical examples                                                  |
+| P6 — state-migration scripts   | `make migrate-state` driver + `set -euo pipefail` + idempotency reviewed in PR                            |
 
 ### Anti-patterns specific to this architecture
 
@@ -390,15 +390,23 @@ kw-platform-ops/
 │   │       └── README.md                  ← NEW (FR25, P4)
 │   │
 │   └── workflows/
-│       ├── deploy-dp.yaml                 ← updated: TF_BACKEND_CONFIG, kubeconfig inputs
-│       ├── developer-portal.yaml          ← updated: init-terraform usage
-│       ├── onboard-konnect-teams.yaml     ← updated: init-terraform usage
+│       ├── provision-konnect-resources.yaml ← NEW unified Konnect provisioning workflow (ADR #002)
+│       ├── deploy-dp.yaml                 ← retained outside current sprint scope
+│       ├── developer-portal.yaml          ← retired after migration into konnect/orgs/<org>
+│       ├── onboard-konnect-teams.yaml     ← retired after ADR #002 verification
 │       ├── test-sync-api-configuration.yaml
 │       ├── lint-action-contracts.yaml     ← NEW (D4: README ↔ action.yml diff)
 │       └── lint-no-bypass.yaml            ← NEW (D5/P3: bypass detection)
 │
 ├── terraform/
-│   └── konnect-teams/                     ← platform-team root module
+│   ├── konnect/                           ← NEW unified Konnect root module (ADR #002)
+│   │   ├── providers.tf
+│   │   ├── backend.tf
+│   │   ├── config.minio.tfbackend
+│   │   ├── config.s3.tfbackend
+│   │   ├── main.tf, variables.tf, outputs.tf
+│   │   └── modules/                       ← reused/adapted Sanofi + existing provision modules
+│   └── konnect-teams/                     ← retired after ADR #002 verification
 │       ├── providers.tf                   ← provider pin → 3.15 (D3)
 │       ├── backend.tf
 │       ├── config.minio.tfbackend         ← NEW (D1/P1)
@@ -412,12 +420,16 @@ kw-platform-ops/
 │           └── 001-konnect-3-15-rename.sh
 │
 ├── konnect/
-│   ├── developer-portal/config.yaml
-│   └── dashboards/dashboard-config.yaml
+│   └── orgs/
+│       └── konnect/
+│           ├── authentication-settings.yaml
+│           ├── control-planes.yaml
+│           ├── dashboards.yaml
+│           ├── identity-provider.yaml
+│           ├── portals.yaml
+│           └── teams.yaml
 │
-├── teams/
-│   ├── .gitkeep
-│   └── flight-operations.yaml             ← canonical example team (NFR7)
+├── teams/                                 ← retired after migration into konnect/orgs/konnect
 │
 ├── portal/                                ← reserved for portal/*.yaml triggers (currently empty)
 │
@@ -461,25 +473,25 @@ kw-platform-ops/
 
 ### What's added / renamed / removed
 
-| Change | Files | Driven by |
-|---|---|---|
-| **Add** `MIGRATION.md` | root | FR32, FR33, D7 |
-| **Add** `act.secrets.example` template | root | FR6 |
-| **Add** shared composite action `init-terraform/` | `.github/actions/init-terraform/{action.yml,README.md}` | D1, D5 |
-| **Add** `lint-action-contracts.yaml` | `.github/workflows/` | D4, NFR18 |
-| **Add** `lint-no-bypass.yaml` | `.github/workflows/` | D5, NFR12 |
-| **Add** READMEs | `.github/actions/{deploy-dp,publish-api-configuration,setup-k8s-tools}/README.md` | FR25, P4 |
-| **Add** `kubeconfig-path` / `kubeconfig-content` inputs | `.github/actions/deploy-dp/action.yml` | D2, P2 |
-| **Add** `config.minio.tfbackend` | both Terraform trees | D1, P1 |
-| **Add** `migrations/` directories + first state-mv script | both Terraform trees | D3, P6 |
-| **Add** `migrate-state` target | `Makefile` | D3, P6 |
-| **Rename** `create-s3-bucket.sh` → `create-state-bucket.sh` | `scripts/` | D1 |
-| **Update** provider pin `3.1.0` → `3.15` | both `providers.tf` files | D3 |
-| **Update** workflows for `TF_BACKEND_CONFIG` env, init-terraform usage, observability removal | `.github/workflows/*.yaml` | D1, D6 |
-| **Update** README for local-first quickstart | `README.md` | FR34 |
-| **Update** README parity to P4 structure where needed | `provision-konnect-resources/README.md` | D4, P4 |
-| **Remove** Datadog/Dynatrace references | `k8s/values.yaml`, action inputs/READMEs, top-level docs | D6 |
-| **Remove** `WHAT_TO_CHANGE.md` | root | Refactor work item; delete on completion |
+| Change                                                                                        | Files                                                                             | Driven by                                |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------- |
+| **Add** `MIGRATION.md`                                                                        | root                                                                              | FR32, FR33, D7                           |
+| **Add** `act.secrets.example` template                                                        | root                                                                              | FR6                                      |
+| **Add** shared composite action `init-terraform/`                                             | `.github/actions/init-terraform/{action.yml,README.md}`                           | D1, D5                                   |
+| **Add** `lint-action-contracts.yaml`                                                          | `.github/workflows/`                                                              | D4, NFR18                                |
+| **Add** `lint-no-bypass.yaml`                                                                 | `.github/workflows/`                                                              | D5, NFR12                                |
+| **Add** READMEs                                                                               | `.github/actions/{deploy-dp,publish-api-configuration,setup-k8s-tools}/README.md` | FR25, P4                                 |
+| **Add** `kubeconfig-path` / `kubeconfig-content` inputs                                       | `.github/actions/deploy-dp/action.yml`                                            | D2, P2                                   |
+| **Add** `config.minio.tfbackend`                                                              | both Terraform trees                                                              | D1, P1                                   |
+| **Add** `migrations/` directories + first state-mv script                                     | both Terraform trees                                                              | D3, P6                                   |
+| **Add** `migrate-state` target                                                                | `Makefile`                                                                        | D3, P6                                   |
+| **Rename** `create-s3-bucket.sh` → `create-state-bucket.sh`                                   | `scripts/`                                                                        | D1                                       |
+| **Update** provider pin `3.1.0` → `3.15`                                                      | both `providers.tf` files                                                         | D3                                       |
+| **Update** workflows for `TF_BACKEND_CONFIG` env, init-terraform usage, observability removal | `.github/workflows/*.yaml`                                                        | D1, D6                                   |
+| **Update** README for local-first quickstart                                                  | `README.md`                                                                       | FR34                                     |
+| **Update** README parity to P4 structure where needed                                         | `provision-konnect-resources/README.md`                                           | D4, P4                                   |
+| **Remove** Datadog/Dynatrace references                                                       | `k8s/values.yaml`, action inputs/READMEs, top-level docs                          | D6                                       |
+| **Remove** `WHAT_TO_CHANGE.md`                                                                | root                                                                              | Refactor work item; delete on completion |
 
 ### Architectural boundaries
 
@@ -498,33 +510,33 @@ kw-platform-ops/
 
 ### Requirements-to-structure mapping
 
-| FR group | Lives in |
-|---|---|
-| FR1 (clone-to-runnable) | `Makefile` (`prepare`), `docker-compose.yaml`, `scripts/check-deps.sh`, `scripts/prep-act-secrets.sh`, `scripts/prep-actrc.sh` |
-| FR2 (S3-compatible local state) | `docker-compose.yaml` (MinIO), `scripts/create-state-bucket.sh`, `*config.minio.tfbackend` |
-| FR3 (`act` runner) | `.actrc`, `.actrc.tpl`, `scripts/prep-actrc.sh` |
-| FR4 (dependency check) | `scripts/check-deps.sh` |
-| FR5 (start/stop/reset local stack) | `Makefile`, `docker-compose.yaml` |
-| FR6 (single external credential) | `act.secrets.example` (NEW), README quickstart |
-| FR7–FR12 (Konnect provisioning) | `.github/workflows/onboard-konnect-teams.yaml`, `terraform/konnect-teams/**`, `teams/*.yaml`, `provision-konnect-resources/**` |
-| FR13–FR16 (dataplane deploy) | `.github/actions/deploy-dp/`, `k8s/values.yaml`, `.github/workflows/deploy-dp.yaml` |
-| FR17–FR20 (API publishing) | `.github/actions/publish-api-configuration/**`, `.github/workflows/test-sync-api-configuration.yaml` |
-| FR21–FR22 (portal + dashboards) | `konnect/developer-portal/`, `konnect/dashboards/`, `.github/workflows/developer-portal.yaml`, `provision-konnect-resources/terraform/modules/portal_*` |
-| FR23 (operator webapp) | `webapp/onboard_team_app.py` |
-| FR24–FR28 (Action contract stability) | `.github/actions/*/README.md`, `.github/workflows/lint-action-contracts.yaml` |
-| FR29 (state-backend select) | `*config.{minio,s3}.tfbackend`, `.github/actions/init-terraform/`, `TF_BACKEND_CONFIG` env var |
-| FR30 (secrets-backend select) | `VAULT_ADDR` env var; `terraform/konnect-teams/modules/vault/` (per ADR #001 — same module both modes) |
-| FR31 (k8s target select) | `.github/actions/deploy-dp/action.yml` (`kubeconfig-path`, `kubeconfig-content`) |
-| FR32 (legacy → local migration) | `MIGRATION.md` § 1 |
-| FR33 (provider 3.1 → 3.15 migration) | `MIGRATION.md` § 2, `*/migrations/001-konnect-3-15-rename.sh`, `Makefile` (`migrate-state`) |
-| FR34 (README quickstart) | `README.md` |
+| FR group                              | Lives in                                                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR1 (clone-to-runnable)               | `Makefile` (`prepare`), `docker-compose.yaml`, `scripts/check-deps.sh`, `scripts/prep-act-secrets.sh`, `scripts/prep-actrc.sh`                          |
+| FR2 (S3-compatible local state)       | `docker-compose.yaml` (MinIO), `scripts/create-state-bucket.sh`, `*config.minio.tfbackend`                                                              |
+| FR3 (`act` runner)                    | `.actrc`, `.actrc.tpl`, `scripts/prep-actrc.sh`                                                                                                         |
+| FR4 (dependency check)                | `scripts/check-deps.sh`                                                                                                                                 |
+| FR5 (start/stop/reset local stack)    | `Makefile`, `docker-compose.yaml`                                                                                                                       |
+| FR6 (single external credential)      | `act.secrets.example` (NEW), README quickstart                                                                                                          |
+| FR7–FR12, FR35–FR38 (Konnect provisioning) | `.github/workflows/provision-konnect-resources.yaml`, `terraform/konnect/**`, `konnect/orgs/<org>/*.yaml`                                           |
+| FR13–FR16 (dataplane deploy)          | `.github/actions/deploy-dp/`, `k8s/values.yaml`, `.github/workflows/deploy-dp.yaml`                                                                     |
+| FR17–FR20 (API publishing)            | `.github/actions/publish-api-configuration/**`, `.github/workflows/test-sync-api-configuration.yaml`                                                    |
+| FR21–FR22 (portal + dashboards)       | `konnect/orgs/<org>/*.yaml`, `terraform/konnect/**`, portal/dashboard modules reused by the unified module                                             |
+| FR23 (operator webapp)                | `webapp/onboard_team_app.py`                                                                                                                            |
+| FR24–FR28 (Action contract stability) | `.github/actions/*/README.md`, `.github/workflows/lint-action-contracts.yaml`                                                                           |
+| FR29 (state-backend select)           | `*config.{minio,s3}.tfbackend`, `.github/actions/init-terraform/`, `TF_BACKEND_CONFIG` env var                                                          |
+| FR30 (secrets-backend select)         | `VAULT_ADDR` env var; Vault submodule reused from `terraform/konnect/` (per ADR #001 — same module both modes)                                          |
+| FR31 (k8s target select)              | `.github/actions/deploy-dp/action.yml` (`kubeconfig-path`, `kubeconfig-content`)                                                                        |
+| FR32 (legacy → local migration)       | `MIGRATION.md` § 1                                                                                                                                      |
+| FR33 (provider 3.1 → 3.15 migration)  | `MIGRATION.md` § 2, `*/migrations/001-konnect-3-15-rename.sh`, `Makefile` (`migrate-state`)                                                             |
+| FR34 (README quickstart)              | `README.md`                                                                                                                                             |
 
 ### Integration points / data flow
 
 1. **Operator clones repo** → `make prepare` → docker-compose brings up MinIO (`:9000`/`:9001`) + Vault (`:8300`); `prep-actrc.sh` writes `.actrc`; `prep-act-secrets.sh` ensures `act.secrets` has `KONNECT_TOKEN` and `VAULT_TOKEN=root`.
-2. **Operator edits `teams/<team>.yaml`** → push to `main` triggers `onboard-konnect-teams.yaml` (or `act` runs it locally).
-3. **`onboard-konnect-teams.yaml`** → calls `init-terraform` (selects backend via `TF_BACKEND_CONFIG`) → runs `validate-config.sh` (P3 prefix: "Validate ...") → `terraform plan -out=tfplan` (P3 prefix: "Plan ...") → `terraform apply tfplan` → `terraform/konnect-teams/` provisions teams, system accounts, Vault paths.
-4. **API team workflow (companion repo)** → calls `provision-konnect-resources` action with team's per-team YAML → action runs its inner Terraform → provisions APIs, portals, plugins.
+2. **Operator edits `konnect/orgs/<org>/*.yaml`** → push to `main` triggers `provision-konnect-resources.yaml` (or `act` runs it locally).
+3. **`provision-konnect-resources.yaml`** → calls `init-terraform` (selects backend via `TF_BACKEND_CONFIG` and key `konnect/orgs/<org>/terraform.tfstate`) → runs unified YAML validation → `terraform plan -out=tfplan` → `terraform apply tfplan` → `terraform/konnect/` provisions all supported Konnect resources and writes per-team system-account tokens to HashiCorp Vault.
+4. **API team workflow (companion repo)** → consumes the platform contract after the unified engine is in place; any self-service resource provisioning uses the same Sanofi-style org resource model or a documented compatibility wrapper, not a second Terraform root.
 5. **Operator runs `deploy-dp.yaml`** with `kong-image-tag` + `helm-chart-version` inputs → action selects k8s target via `kubeconfig-content` (cloud) or `kubeconfig-path` default (local) → Helm installs `kong/kong` chart → dataplane registers with hosted Konnect.
 6. **API team's `publish-api.yaml`** → calls `publish-api-configuration` action → Spectral OWASP lint (P3 prefix: "Lint ...") → decK syncs to dev portal.
 7. **CI on every PR:** `lint-action-contracts.yaml` (D4) + `lint-no-bypass.yaml` (D5) run; failures block merge.
@@ -630,3 +642,57 @@ The bypass-detection lint (D5) requires existing workflow steps to either confor
 - Implementation sequence (per step-04 Decision Impact Analysis): Konnect provider 3.15 → state backend → k8s target → observability removal → docs refresh + lints. Each landable as an independent PR.
 
 **First Implementation Priority:** Konnect provider 3.1.0 → 3.15 migration (D3) — inventory resources in both Terraform trees, schema-diff against local provider source, write `001-konnect-3-15-rename.sh` per tree, verify clean `terraform plan` against fresh local MinIO backend, write `MIGRATION.md` § 2.
+
+---
+
+## ADR #002: Unified Konnect Provisioning Engine
+
+**Status:** Accepted (2026-05-21)  
+**Supersedes:** The three-workflow + two-Terraform-tree provisioning design established at project start.
+
+### Decision
+
+Replace the fragmented provisioning design with a single workflow (`provision-konnect-resources.yaml`) backed by one Terraform module (`terraform/konnect/`) that reads every supported Konnect resource declaration from `konnect/orgs/<org>/*.yaml` via `fileset() + yamldecode() + merge()`. The YAML syntax mirrors the Sanofi reference repository: one org directory, files grouped by resource type, Sanofi-style top-level keys, and nested control-plane resources where appropriate. State is managed in a single S3/MinIO bucket under key `konnect/orgs/<org>/terraform.tfstate`.
+
+Reference pattern: `sanofi-konnect-platform-ops-main` repository.
+
+### Rationale
+
+The `fileset() + yamldecode() + merge()` pattern scales cleanly across Konnect resource types without requiring per-workflow Terraform trees. Per-team state buckets add operational overhead with no benefit — org-level state is sufficient. The `konnect/orgs/konnect/` directory already partially implements the target structure, and the Sanofi reference proves the pattern for teams, system accounts, control planes, control-plane child entities, portals, application auth strategies, authentication settings, and identity provider configuration.
+
+### Component Changes
+
+| Before                                             | After                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| `onboard-konnect-teams.yaml`                       | Retired                                                      |
+| `provision-auth-identity.yaml`                     | Retired                                                      |
+| `provision-konnect-team-resources.yaml`            | Retired                                                      |
+| `terraform/konnect-teams/`                         | Retired (after Story 3.4 verification)                       |
+| `teams/*.yaml`                                     | Retired — data migrated to `konnect/orgs/konnect/`           |
+| `konnect/auth-identity/`, `konnect/teams/`         | Retired — data migrated to `konnect/orgs/konnect/`           |
+| `konnect/developer-portal/`, `konnect/dashboards/` | Retired — data migrated to `konnect/orgs/konnect/`           |
+| —                                                  | `provision-konnect-resources.yaml` (new, single workflow)    |
+| —                                                  | `terraform/konnect/` (new, unified module)                   |
+| —                                                  | `konnect/orgs/konnect/*.yaml` (unified YAML source of truth) |
+
+### State Backend
+
+Single bucket (`kw.konnect.state`), key = `konnect/orgs/<org>/terraform.tfstate`. MinIO (local default) and AWS S3 (cloud) selected via the existing `TF_BACKEND_CONFIG` mechanism from Epic 2. No per-team bucket creation required for provisioning state.
+
+### Vault Integration
+
+HashiCorp Vault (ADR #001) is retained. Per-team system account tokens stored via reused `modules/system-account` and `modules/vault` from the retired `terraform/konnect-teams/`. System accounts declared in `konnect/orgs/konnect/` YAML (new `system_accounts:` key).
+
+### Resource Coverage
+
+The unified module covers the current repository's supported Konnect provider surface from one plan/apply path. This includes org resources (`teams`, `system_accounts`, authentication settings, identity provider, portals, dashboards), control-plane resources (`control_planes`, control-plane groups and memberships), nested control-plane children (`services`, `routes`, `upstreams`, `vaults`, partials, certificates, and plugins), and API/portal resource modules currently represented in `.github/actions/provision-konnect-resources/terraform/modules/` where they remain relevant.
+
+Adding a new Konnect resource kind later should extend `terraform/konnect/` and the YAML schema under `konnect/orgs/<org>/`; it should not introduce another workflow, state bucket, or Terraform root.
+
+### Implementation Sequence
+
+Epic 3 (new), four stories:
+1. Story 3.1 — Build unified `terraform/konnect/` module
+2. Story 3.2 — Align `konnect/orgs/konnect/` YAML schema to provider-3.15 unified format
+3. Story 3.3 — Create unified `provision-konnect-resources.yaml` workflow
+4. Story 3.4 — End-to-end verification and retire obsolete files/workflows

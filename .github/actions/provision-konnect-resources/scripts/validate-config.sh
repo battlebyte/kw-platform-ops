@@ -40,6 +40,9 @@ allowed_types=(
   "konnect.portal_favicon"
   "konnect.portal_product_version"
   "konnect.dashboard"
+  "konnect.authentication_settings"
+  "konnect.identity_provider"
+  "konnect.identity_provider_team_group_mapping"
 )
 invalid_resources=""
 

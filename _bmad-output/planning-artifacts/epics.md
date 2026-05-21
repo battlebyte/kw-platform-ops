@@ -155,42 +155,42 @@ _Not applicable — `kw-platform-ops` has no UX Design Specification. The reposi
 
 ### FR Coverage Map
 
-| FR | Epic | Description |
-|---|---|---|
-| FR1 | Epic 2 | `make prepare` end-to-end on a clean macOS clone |
-| FR2 | Epic 2 | MinIO as S3-compatible local Terraform state backend |
-| FR3 | Epic 2 | `act`-runnable Actions runner environment |
-| FR4 | Epic 2 | Dependency self-discovery with actionable errors (`scripts/check-deps.sh`) |
-| FR5 | Epic 2 | Make targets to start / stop / reset the local stack |
-| FR6 | Epic 2 | Single-credential bootstrap via gitignored `act.secrets` |
-| FR7 | Epic 1 | Konnect teams from declarative YAML (verified post-provider-migration) |
-| FR8 | Epic 1 | System accounts persisted to HashiCorp Vault per ADR #001 |
-| FR9 | Epic 1 | Konnect control planes provisioned from team YAML |
-| FR10 | Epic 1 | YAML schema validation gate before any infrastructure mutation |
-| FR11 | Epic 1 | Entitlements rejected when outside the supported set |
-| FR12 | Epic 1 | Idempotent provisioning re-runs (no diff, no mutation) |
-| FR13 | Epic 3 | Dataplane deploy to local Kubernetes (OrbStack / Docker Desktop) |
-| FR14 | Epic 3 | Dataplane deploy to cloud Kubernetes via the same Action |
-| FR15 | Epic 3 | `kong-image-tag` and `helm-chart-version` configurable per invocation |
-| FR16 | Epic 3 | Deployed dataplane registers and reports healthy in Konnect |
-| FR17 | Epic 4 | Spectral OWASP lint with PR-check feedback |
-| FR18 | Epic 4 | decK-driven publish to Konnect dev portal |
-| FR19 | Epic 4 | Idempotent re-publish against unchanged spec |
-| FR20 | Epic 4 | Lint failures include file/line/rule context |
-| FR21 | Epic 1 | Developer-portal configuration applied declaratively (Terraform-driven) |
-| FR22 | Epic 1 | Dashboard configuration applied with pre-mutation validation |
-| FR23 | Epic 5 | Flask onboarding webapp documented in top-level README |
-| FR24 | Epic 4 | Every Composite Action declares inputs/outputs in `action.yml` |
-| FR25 | Epic 4 | Per-action `README.md` parity (P4 structure) |
-| ~~FR26~~ | — | _Out of MVP scope (Growth phase per Architecture D4)_ |
-| FR27 | Epic 4 | Breaking changes to action contracts documented in `MIGRATION.md` |
-| FR28 | Epic 4 | Action contracts readable from repo without running anything |
-| FR29 | Epic 2 | State backend selection via `TF_BACKEND_CONFIG` (MinIO ↔ S3) |
-| FR30 | Epic 2 | Secrets backend selection via `VAULT_ADDR` swap (per ADR #001) |
-| FR31 | Epic 3 | K8s target selection via `kubeconfig-path` / `kubeconfig-content` |
-| FR32 | Epic 5 | `MIGRATION.md` §1 (legacy cloud-only → local-first) |
-| FR33 | Epic 1 | `MIGRATION.md` §2 (Konnect provider 3.1.0 → 3.15) |
-| FR34 | Epic 5 | Top-level `README.md` local-first quickstart |
+| FR       | Epic   | Description                                                                |
+| -------- | ------ | -------------------------------------------------------------------------- |
+| FR1      | Epic 2 | `make prepare` end-to-end on a clean macOS clone                           |
+| FR2      | Epic 2 | MinIO as S3-compatible local Terraform state backend                       |
+| FR3      | Epic 2 | `act`-runnable Actions runner environment                                  |
+| FR4      | Epic 2 | Dependency self-discovery with actionable errors (`scripts/check-deps.sh`) |
+| FR5      | Epic 2 | Make targets to start / stop / reset the local stack                       |
+| FR6      | Epic 2 | Single-credential bootstrap via gitignored `act.secrets`                   |
+| FR7      | Epic 1 | Konnect teams from declarative YAML (verified post-provider-migration)     |
+| FR8      | Epic 1 | System accounts persisted to HashiCorp Vault per ADR #001                  |
+| FR9      | Epic 1 | Konnect control planes provisioned from team YAML                          |
+| FR10     | Epic 1 | YAML schema validation gate before any infrastructure mutation             |
+| FR11     | Epic 1 | Entitlements rejected when outside the supported set                       |
+| FR12     | Epic 1 | Idempotent provisioning re-runs (no diff, no mutation)                     |
+| FR13     | Epic 3 | Dataplane deploy to local Kubernetes (OrbStack / Docker Desktop)           |
+| FR14     | Epic 3 | Dataplane deploy to cloud Kubernetes via the same Action                   |
+| FR15     | Epic 3 | `kong-image-tag` and `helm-chart-version` configurable per invocation      |
+| FR16     | Epic 3 | Deployed dataplane registers and reports healthy in Konnect                |
+| FR17     | Epic 4 | Spectral OWASP lint with PR-check feedback                                 |
+| FR18     | Epic 4 | decK-driven publish to Konnect dev portal                                  |
+| FR19     | Epic 4 | Idempotent re-publish against unchanged spec                               |
+| FR20     | Epic 4 | Lint failures include file/line/rule context                               |
+| FR21     | Epic 1 | Developer-portal configuration applied declaratively (Terraform-driven)    |
+| FR22     | Epic 1 | Dashboard configuration applied with pre-mutation validation               |
+| FR23     | Epic 5 | Flask onboarding webapp documented in top-level README                     |
+| FR24     | Epic 4 | Every Composite Action declares inputs/outputs in `action.yml`             |
+| FR25     | Epic 4 | Per-action `README.md` parity (P4 structure)                               |
+| ~~FR26~~ | —      | _Out of MVP scope (Growth phase per Architecture D4)_                      |
+| FR27     | Epic 4 | Breaking changes to action contracts documented in `MIGRATION.md`          |
+| FR28     | Epic 4 | Action contracts readable from repo without running anything               |
+| FR29     | Epic 2 | State backend selection via `TF_BACKEND_CONFIG` (MinIO ↔ S3)               |
+| FR30     | Epic 2 | Secrets backend selection via `VAULT_ADDR` swap (per ADR #001)             |
+| FR31     | Epic 3 | K8s target selection via `kubeconfig-path` / `kubeconfig-content`          |
+| FR32     | Epic 5 | `MIGRATION.md` §1 (legacy cloud-only → local-first)                        |
+| FR33     | Epic 1 | `MIGRATION.md` §2 (Konnect provider 3.1.0 → 3.15)                          |
+| FR34     | Epic 5 | Top-level `README.md` local-first quickstart                               |
 
 ## Epic List
 
@@ -208,38 +208,22 @@ Goal: Enable a Solutions Engineer to clone a fresh repo on a clean macOS machine
 **NFRs touched:** NFR1 (< 20 min cold setup), NFR3 (idle resource budget), NFR15 (config-only swap pattern emerges here)
 **Additional Requirements:** AR1, AR2, AR3, AR15, AR16
 
-### Epic 3: Pluggable Kubernetes Target for Dataplane Deploys
+### Epic 3: Unified Konnect Provisioning Engine _(Sprint Change Proposal 2026-05-21)_
 
-Goal: Enable an operator to deploy a Kong Gateway dataplane to either a local Kubernetes cluster (OrbStack / Docker Desktop, default) or any cloud cluster (EKS / GKE / AKS) using the same `deploy-dp` Action — by passing only configuration inputs (`kubeconfig-path` / `kubeconfig-content`). Completes Journey 1 (local demo) and unlocks Journey 2 (mid-demo cloud swap). Non-breaking additive change.
-**FRs covered:** FR13, FR14, FR15, FR16, FR31
-**NFRs touched:** NFR15 (config-only k8s target swap)
-**Additional Requirements:** AR4
-
-### Epic 4: API Publishing & Action Contract Stability
-
-Goal: Enable an API-team developer to consume the platform's Composite Actions with documented input/output contracts, mechanically-enforced README ↔ `action.yml` non-divergence, mechanically-enforced quality-gate bypass prevention, and PR-time Spectral feedback when an OpenAPI spec breaks lint rules. Delivers per-action README parity (P4 structure) for `deploy-dp`, `publish-api-configuration`, `setup-k8s-tools`, and `init-terraform`; updates `provision-konnect-resources` README to P4 structure; ships the `lint-action-contracts.yaml` and `lint-no-bypass.yaml` CI workflows.
-**FRs covered:** FR17, FR18, FR19, FR20, FR24, FR25, FR27, FR28
-**NFRs touched:** NFR12 (no bypass — enforced by lint), NFR18 (README ↔ `action.yml` non-divergence — enforced by lint)
-**Additional Requirements:** AR9, AR10, AR11, AR12 (P3 step-name audit as AC on the bypass-lint story)
-
-### Epic 5: Documentation Synthesis, Migration Path & Vendor Cleanup
-
-Goal: A reader (Marcus / prospect's platform lead) opens the top-level `README.md` cold and within 30 minutes understands the federated platform-ops model, the local-first quickstart, and the location of the companion API-team repo. SEs and forks can navigate `MIGRATION.md` to retain a cloud-backed configuration when needed. The repository contains zero Datadog / Dynatrace references — vendor-neutral observability scaffolding (Kong status endpoints, default log format, Prometheus metrics) is preserved. Lands the top-level README rewrite, `MIGRATION.md` §1 (synthesizing legacy → local migration covering Epics 2 + 3), the Datadog/Dynatrace strip, and Flask onboarding webapp documentation.
-**FRs covered:** FR23, FR32, FR34
-**NFRs touched:** NFR7 (no vendor identifiers), NFR19 (README cold-readable in < 30 min)
-**Additional Requirements:** AR13, AR14
+Goal: Consolidate `onboard-konnect-teams.yaml`, `provision-auth-identity.yaml`, and `provision-konnect-team-resources.yaml` into a single `provision-konnect-resources.yaml` workflow backed by one Terraform module (`terraform/konnect/`) that reads every supported Konnect resource declaration from `konnect/orgs/<org>/*.yaml`, using the Sanofi reference syntax. State is managed in a single S3/MinIO bucket under key `konnect/orgs/<org>/terraform.tfstate`. Per-team HashiCorp Vault entries for system account tokens are preserved. All fragmented legacy source directories and workflows are retired after end-to-end verification.
+**FRs covered:** FR7, FR8, FR9, FR10, FR12, FR21, FR22, FR35, FR36, FR37, FR38
+**NFRs touched:** NFR4–NFR6, NFR9 (secret discipline), NFR10 (act-runnable), NFR15 (config-only backend swap)
 
 ---
 
 **Sequencing & Dependencies:**
 
-- **Epic 1** lands first — provider migration is the riskiest schema work; subsequent epics verify on a working baseline.
-- **Epic 2** lands second — local stack runnability depends on Epic 1's clean plan against MinIO backend.
-- **Epic 3** can land any time after Epic 2 — additive, non-breaking change to `deploy-dp`.
-- **Epic 4** can land in parallel with Epic 3 — touches different files (Composite Actions + new CI workflows).
-- **Epic 5** lands last — top-level README and `MIGRATION.md` §1 require Epics 2–4's changes to exist for an accurate synthesis.
+- **Epic 1** ✅ done — provider 3.15 is the foundation for Epic 3's Terraform module.
+- **Epic 2** ✅ done — MinIO backend, `init-terraform` action, and `create-state-bucket.sh` are all reused by Epic 3.
+- **Epic 3** builds on Epics 1 and 2 and must be completed sequentially (Story 3.1 → 3.2 → 3.3 → 3.4).
+- ~~**Epics 3 (old Pluggable K8s), 4, 5 cancelled 2026-05-21 per Sprint Change Proposal.**~~
 
-Each epic delivers complete, standalone value: working modern provider (Epic 1), working local stack (Epic 2), working pluggable k8s (Epic 3), enforced contract stability (Epic 4), navigable docs and clean codebase (Epic 5). No epic requires a future epic to function.
+Each active epic delivers complete, standalone value: working modern provider (Epic 1), working local stack (Epic 2), and unified Konnect provisioning (Epic 3). Cancelled Epics 3/4/5 remain documented only as historical scope removed by the Sprint Change Proposal.
 
 ## Epic 1: Konnect Provider Modernization (3.1.0 → 3.15)
 
@@ -504,321 +488,142 @@ So that NFR1 (< 20 min cold setup) and NFR3 (≤ 4 GB / 4 vCPU idle) are met as 
 **When** I run `make clean` (or `make down` per the existing convention)
 **Then** all docker-compose services stop, gitignored artifacts (`.tls/`, `.tmp/`) are removed, and the working tree is clean for a re-prep cycle (FR5)
 
-## Epic 3: Pluggable Kubernetes Target for Dataplane Deploys
+## Epic 3: Unified Konnect Provisioning Engine
 
-Operator deploys a Kong Gateway dataplane to a local Kubernetes cluster (OrbStack / Docker Desktop, default) or any cloud cluster (EKS / GKE / AKS) using the same `deploy-dp` Action by passing only configuration inputs. Non-breaking additive change.
+_Replaces original Epics 3/4/5 — Sprint Change Proposal approved 2026-05-21._
 
-### Story 3.1: Add paired `kubeconfig-path` / `kubeconfig-content` inputs to `deploy-dp` action
+Consolidates Konnect provisioning into a single workflow and Terraform module reading Sanofi-style YAML from `konnect/orgs/<org>/*.yaml`. The target model provisions every Konnect resource type supported by this repository from the same org directory, state file, validation path, and plan/apply cycle. Adding a new Konnect resource kind later should require adding module/schema support, not adding a new workflow or state bucket.
 
-As a platform engineer,
-I want `deploy-dp/action.yml` to accept the kubeconfig in either path-on-disk form (local CI / operator workstation) or raw-content form (cloud CI without a host kubeconfig),
-So that the same action drives deploys to OrbStack, Docker Desktop, EKS, GKE, and AKS by configuration alone.
-
-**Acceptance Criteria:**
-
-**Given** Architecture decision D2 and pattern P2 (paired path/content inputs)
-**When** I update `.github/actions/deploy-dp/action.yml`
-**Then** the action declares two new inputs: `kubeconfig-path` (optional, default `~/.kube/config`, description references local-cluster use) and `kubeconfig-content` (optional, no default, description marks it as a secret-style input for cloud-CI use)
-**And** existing inputs (`kong-image-tag`, `helm-chart-version`, etc.) are unchanged so the action contract remains backwards-compatible (FR15 preserved)
-
-**Given** the action runs
-**When** `kubeconfig-content` is set (with or without `kubeconfig-path`)
-**Then** the action writes the content to `${RUNNER_TEMP}/kubeconfig` and exports `KUBECONFIG=${RUNNER_TEMP}/kubeconfig` for subsequent steps
-**And** the kubeconfig content never appears in workflow logs (verify by `grep` of the captured log output — NFR4 enforcement)
-
-**Given** the action runs
-**When** only `kubeconfig-path` is set (or both are unset)
-**Then** the action exports `KUBECONFIG=<resolved kubeconfig-path>` (resolving `~` to `$HOME` if present)
-**And** no temporary file is written
-
-**Given** `kubeconfig-content` is set
-**When** the action completes (success or failure)
-**Then** `${RUNNER_TEMP}/kubeconfig` is the only on-disk artifact containing the kubeconfig and is cleaned up by the runner's normal `${RUNNER_TEMP}` lifecycle
-
-**Given** `.github/actions/deploy-dp/README.md` exists
-**When** I update its Inputs table to include the two new inputs (matching name, required flag, default — minimal consistency with `action.yml`)
-**Then** the Example Usage section shows both forms — a local-default call (no kubeconfig inputs) and a cloud call (`kubeconfig-content: ${{ secrets.CLOUD_KUBECONFIG }}`)
-
-_(Note: full P4-conformant README rewrite for `deploy-dp` lands in Epic 4 alongside the contract lint; this story keeps the README consistent with the new inputs in the meantime.)_
-
-### Story 3.2: Verify local Kubernetes deployment end-to-end (OrbStack / Docker Desktop)
-
-As a Solutions Engineer,
-I want the `deploy-dp` action to install a Kong Gateway dataplane to my local Kubernetes cluster (OrbStack or Docker Desktop) with no kubeconfig inputs supplied,
-So that Journey 1's clone-to-first-dataplane promise holds end-to-end.
-
-**Acceptance Criteria:**
-
-**Given** the local docker-compose stack is running, the local Kubernetes cluster (OrbStack or Docker Desktop) is the active kubeconfig context, and `KONNECT_TOKEN` is set in `act.secrets`
-**When** I invoke `act -W .github/workflows/deploy-dp.yaml` with the default `helm-chart-version` (`2.45.0`) and default `kong-image-tag` (`3.11.0.2`) and no kubeconfig inputs
-**Then** the action installs the `kong/kong` Helm chart to the local cluster
-**And** the deployed dataplane pod reaches `Ready` status within the workflow's wait period
-**And** the dataplane registers with the hosted Konnect control plane and is visible as a healthy dataplane in Konnect's UI/API (FR16)
-
-**Given** the same scenario
-**When** I override `kong-image-tag` and `helm-chart-version` per invocation
-**Then** Helm installs the requested chart version with the requested image tag (FR15 preserved)
-
-**Given** the clustering endpoint URL handling already documented in project-context.md
-**When** the action passes the Konnect cluster control-plane endpoint to Helm
-**Then** the `https://` prefix is stripped before being passed to `--set env.cluster_control_plane=...:443` (existing behavior preserved; verified)
-
-**Given** the workflow completes
-**When** I inspect the workflow logs
-**Then** no Konnect or Vault secrets appear in the captured output (NFR4)
-**And** the workflow completed in ≤ 5 minutes (NFR2)
-
-### Story 3.3: Verify cloud Kubernetes deployment via `kubeconfig-content`
+### Story 3.1: Build unified Terraform module `terraform/konnect/`
 
 As a platform engineer,
-I want the same `deploy-dp` action to install a dataplane to a cloud Kubernetes cluster (EKS / GKE / AKS) by passing the cloud kubeconfig as a secret-style input,
-So that Journey 2's "can this run on EKS instead?" mid-demo swap is delivered with no source-code change.
+I want a single Terraform module that reads all Konnect resource declarations from `konnect/orgs/<org>/*.yaml`,
+So that teams, system accounts, control planes, control-plane children, portals, APIs, auth/identity, dashboards, and other supported Konnect entities are managed in one plan/apply cycle.
 
 **Acceptance Criteria:**
 
-**Given** access to any cloud Kubernetes cluster (EKS, GKE, AKS, or equivalent) for which the engineer has a working kubeconfig
-**When** I run a workflow that calls `deploy-dp` and passes the cloud kubeconfig YAML via `kubeconfig-content: ${{ secrets.CLOUD_KUBECONFIG }}`
-**Then** the action installs the `kong/kong` chart on the cloud cluster
-**And** the dataplane registers with the hosted Konnect control plane and reports healthy in Konnect (FR16)
+**Given** `konnect/orgs/<org>/` contains multiple YAML files
+**When** the module runs `fileset()` + `yamldecode()` + `merge()` over all `*.yaml` files
+**Then** it resolves Sanofi-style top-level keys such as `labels`, `control_plane_groups`, `control_planes`, `teams`, `system_accounts`, `application_auth_strategies`, `portals`, `authentication_settings`, `identity_provider`, and `dashboards`
+**And** the module can be extended with additional top-level keys without changing the workflow contract or state layout
 
-**Given** the same workflow
-**When** I inspect the workflow logs
-**Then** no portion of the cloud kubeconfig content appears in the logs — including server URL, cluster name, user-token fragments, or certificate data (NFR4 verification)
-**And** `${RUNNER_TEMP}/kubeconfig` is the only on-disk location the kubeconfig is written to during the run
+**Given** control planes include nested Konnect gateway entities
+**When** the module plans those control planes
+**Then** nested declarations for services, routes, upstreams, vaults, partials, custom plugins, global plugins, service plugins, and route plugins are handled by reusable submodules adapted from the Sanofi reference and the existing `provision-konnect-resources` Terraform modules
 
-**Given** the action contract
-**When** I diff the action's behavior between the local-default invocation (Story 3.2) and the cloud invocation (this story)
-**Then** the only difference is the kubeconfig source — every other input, output, and side effect is identical (FR14, FR31, NFR15)
+**Given** API and portal resource modules already exist under `.github/actions/provision-konnect-resources/terraform/modules/`
+**When** the unified module is built
+**Then** supported modules are moved, reused, or wrapped from `terraform/konnect/` so there is one Terraform implementation behind Konnect provisioning, not a second type-tagged implementation
 
-## Epic 4: API Publishing & Action Contract Stability
+**Given** `var.org = "konnect"`
+**When** Terraform initializes
+**Then** the backend key is `konnect/orgs/konnect/terraform.tfstate`
+**And** the backend bucket is a single shared S3/MinIO bucket, not `kw.konnect.team.resources.<team>`
 
-API-team developer consumes the Composite Actions with documented inputs, mechanically-enforced README ↔ `action.yml` non-divergence, mechanically-enforced quality-gate bypass prevention, and PR-time Spectral feedback when an OpenAPI spec breaks lint rules.
+**Given** the module is complete
+**When** `terraform fmt -check -recursive` and `terraform validate` run in `terraform/konnect/`
+**Then** both pass with no errors
 
-### Story 4.1: Audit and complete `action.yml` declarations for every published Composite Action
+### Story 3.2: Migrate YAML to Sanofi-style `konnect/orgs/<org>/` syntax
 
 As a platform engineer,
-I want every published Composite Action's `action.yml` to declare all inputs (with `description`, `required`, and `default` for optional inputs) and all outputs (with `description`),
-So that the contract is fully visible from the action definition alone — satisfying FR24 and giving the contract lint (Story 4.3) something to diff against.
+I want all Konnect resource data declared under `konnect/orgs/<org>/` using the Sanofi reference syntax,
+So that this repository has one declarative source of truth for every supported Konnect entity.
 
 **Acceptance Criteria:**
 
-**Given** the published Composite Actions: `deploy-dp`, `provision-konnect-resources`, `publish-api-configuration`, `setup-k8s-tools`, and `init-terraform` (from Epic 2)
-**When** I audit each `action.yml`
-**Then** every input declares `description` (non-empty, descriptive, not just the input name) and `required` (true | false)
-**And** every optional input (`required: false`) declares a `default` value
-**And** every output declares `description`
-**And** every input name is kebab-case (per project-context.md naming rules)
+**Given** the Sanofi reference at `/Users/jordi.fernandez/Downloads/sanofi-konnect-platform-ops-main/konnect/orgs/sanofi/`
+**When** this repository's YAML is migrated
+**Then** the target structure mirrors the same pattern: one org directory, one or more YAML files grouped by resource type, and top-level keys consumed by `fileset()` + `yamldecode()` + `merge()`
 
-**Given** any gaps surface during the audit
-**When** I patch the affected `action.yml` files
-**Then** the audit re-runs cleanly with zero gaps, and the patched files preserve all existing input/output names (no breaking renames in this story)
+**Given** existing type-tagged resource files under `konnect/auth-identity/` and `konnect/teams/*/`
+**When** their data is migrated
+**Then** equivalent declarations exist under `konnect/orgs/konnect/`
+**And** the old `resources: [{ type: ... }]` schema is no longer the primary provisioning syntax
 
-### Story 4.2: Author P4-conformant README for every published Composite Action
+**Given** existing team YAML under `teams/*.yaml` and `konnect/orgs/konnect/teams.yaml`
+**When** teams are migrated
+**Then** team roles use the Sanofi/provider-3.15 `roles` shape with `name`, `entity_type_name`, optional `entity_region`, and optional `entity_names`
+**And** legacy `control_plane_roles`, `api_roles`, and `entitlements` are replaced or translated
 
-As an API-team developer,
-I want each published Composite Action to ship a `README.md` documenting its purpose, inputs, outputs, side effects, example caller, and failure modes — with structure consistent across actions,
-So that I can determine the contract of any action by reading the repo, without running anything (FR28), and onboarding to a new action takes minutes.
+**Given** system accounts are generated per team today
+**When** `system_accounts` are declared under `konnect/orgs/konnect/`
+**Then** each team that needs automation keeps its own HashiCorp Vault entry at `system-accounts/sa-<team-name>` or an explicitly documented compatible path
+**And** system account tokens are never stored in YAML, Terraform outputs, or workflow logs
 
-**Acceptance Criteria:**
+**Given** identity-provider or application auth configuration requires secrets
+**When** those resources are migrated
+**Then** committed YAML contains only non-secret configuration or references into `sensitive_vars`/environment/Vault inputs; real client secrets are not committed
 
-**Given** Architecture pattern P4 (action README structure) and the existing canonical example at `.github/actions/provision-konnect-resources/README.md`
-**When** I create or update each of `.github/actions/deploy-dp/README.md`, `.github/actions/publish-api-configuration/README.md`, `.github/actions/setup-k8s-tools/README.md`, and update `.github/actions/provision-konnect-resources/README.md` for any drift
-**Then** every README has H2 sections in this exact order: `## Overview`, `## Inputs`, `## Outputs`, `## Side Effects`, `## Example Usage`, `## Failure Modes`
-**And** the `## Inputs` table has columns `Name | Description | Required | Default` and lists every entry from the action's `action.yml` `inputs:` block with matching values
-**And** the `## Outputs` table has columns `Name | Description` and lists every entry from the action's `outputs:` block
-**And** the `## Example Usage` section provides a complete, copy-pasteable `uses:` block with realistic input values (no placeholders like `<TODO>`)
-**And** the `## Side Effects` section enumerates what the action mutates (Konnect resources, Vault paths, Kubernetes resources, files written) per FR25
-
-**Given** `.github/actions/init-terraform/README.md` was already written to P4 structure in Epic 2 Story 2.2
-**When** I re-verify it against this story's structural rules
-**Then** it passes unchanged (or is patched to bring it into alignment if any drift is found)
-
-### Story 4.3: Implement `lint-action-contracts.yaml` CI workflow enforcing README ↔ `action.yml` non-divergence
+### Story 3.3: Create single `provision-konnect-resources.yaml` workflow
 
 As a platform engineer,
-I want a CI workflow that mechanically diffs each `action.yml`'s declared `inputs:` / `outputs:` against the corresponding README's Inputs / Outputs tables and blocks merge on drift,
-So that NFR18 is enforced automatically and contract drift becomes a release-blocking defect rather than a manual review concern.
+I want one operator workflow that provisions any supported Konnect entity from `konnect/orgs/<org>/`,
+So that operators no longer choose between team onboarding, auth identity provisioning, and per-team resource provisioning workflows.
 
 **Acceptance Criteria:**
 
-**Given** Architecture decision D4 and the per-action READMEs from Story 4.2
-**When** I create `.github/workflows/lint-action-contracts.yaml`
-**Then** the workflow triggers on `pull_request` events and on `push` to `main`
-**And** the workflow's lint step uses a small `yq | python` (or equivalent) script located at `.github/workflows/scripts/lint-action-contracts.py` (or inline) that, for each `.github/actions/<name>/action.yml`:
-  1. Parses `inputs:` and `outputs:` from `action.yml`
-  2. Parses the corresponding README's Inputs and Outputs tables
-  3. Reports any difference in input/output names, required flags, or default values
-**And** the lint step's `name:` begins with `Lint` (per Pattern P3) so it is covered by the bypass detector from Story 4.4
+**Given** `workflow_dispatch` inputs `org` (default `konnect`), `action` (`plan`, `apply`, `destroy`), and optional `rotate-certs`
+**When** the workflow is dispatched
+**Then** it runs Terraform against `terraform/konnect/` using `TF_VAR_org=<org>` and config path `konnect/orgs/<org>`
 
-**Given** an action.yml is changed without updating its README (or vice versa)
-**When** the workflow runs
-**Then** the workflow fails with a message naming the specific input/output that drifted, in which file, with the source-of-truth and divergent values shown
-**And** the failure message reminds the contributor that breaking input/output changes require an entry in `MIGRATION.md` (FR27)
+**Given** a push to `main` changes files under `konnect/orgs/**`
+**When** the workflow triggers
+**Then** it runs the same validation, init, plan, and apply path for the affected org
 
-**Given** all action.yml/README pairs are in sync (after Stories 4.1 and 4.2 land)
-**When** the workflow runs on the default branch
-**Then** the workflow succeeds with a clean exit
+**Given** the local MinIO backend is selected
+**When** the workflow initializes Terraform
+**Then** it uses the existing `init-terraform` action and backend override `key=konnect/orgs/<org>/terraform.tfstate`
+**And** it ensures the single shared state bucket exists once
+**And** it does not create buckets per team or per resource file
 
-### Story 4.4: Implement `lint-no-bypass.yaml` CI workflow with P3 step-name audit
+**Given** AWS S3 backend is selected
+**When** the workflow initializes Terraform
+**Then** it uses the same state key shape and the existing S3-compatible backend config pattern
+
+**Given** HashiCorp Vault credentials are supplied
+**When** `terraform apply` completes
+**Then** per-team system account tokens are stored in Vault as before
+**And** `KONNECT_TOKEN`, `VAULT_TOKEN`, client secrets, and generated system-account tokens are not printed
+
+**Given** the workflow replaces three legacy workflows
+**When** implementation completes
+**Then** `.github/workflows/onboard-konnect-teams.yaml`, `.github/workflows/provision-auth-identity.yaml`, and `.github/workflows/provision-konnect-team-resources.yaml` have no remaining production responsibility
+
+### Story 3.4: Verify end-to-end and retire obsolete provisioning paths
 
 As a platform engineer,
-I want a CI workflow that detects validation, lint, or plan steps that have been silently bypassed via `continue-on-error: true` or `|| true` patterns, with all existing gate steps renamed to conform to the P3 step-name prefix as a prerequisite,
-So that NFR12 is mechanically enforced and a developer cannot quietly disable a quality gate.
+I want the unified provisioning engine verified against the local MinIO/Vault stack and legacy paths retired,
+So that the repository has one supported way to provision Konnect resources.
 
 **Acceptance Criteria:**
 
-**Given** Architecture decision D5 and pattern P3 (step-name prefix `^(Validate|Lint|Plan)\b`)
-**When** I audit every step in `.github/workflows/*.yaml` and `.github/actions/*/action.yml` (and `action.yaml`)
-**Then** every step performing a validation, lint, or plan operation has a `name:` whose leading word is one of `Validate`, `Lint`, or `Plan`
-**And** any non-conforming gate step is renamed (e.g., `Spectral OpenAPI check` → `Lint OpenAPI with Spectral`; `terraform plan` → `Plan Terraform changes`)
+**Given** the local stack is running and `act.secrets` contains valid Konnect and Vault credentials
+**When** `act` runs `.github/workflows/provision-konnect-resources.yaml` for `org=konnect`
+**Then** validation, init, plan, and apply complete end-to-end
+**And** a second plan is clean or contains only documented provider-computed drift
 
-**Given** the audit is complete
-**When** I create `.github/workflows/lint-no-bypass.yaml`
-**Then** the workflow triggers on `pull_request` and `push` to `main`
-**And** the workflow's lint step parses every `.github/workflows/*.yaml` and `.github/actions/*/action.{yml,yaml}` file and flags any step whose `name:` matches `^(Validate|Lint|Plan)\b` AND has either `continue-on-error: true` or contains `|| true` inside its `run:` block
+**Given** provisioning succeeds
+**When** Vault is inspected
+**Then** Vault entries exist for all declared per-team system accounts
+**And** token values are not present in Terraform outputs, local files, or captured workflow logs
 
-**Given** a contributor adds `continue-on-error: true` to a step named `Plan Terraform changes`
-**When** the workflow runs on their PR
-**Then** the workflow fails with a message naming the offending file, step, and the bypass pattern detected
+**Given** the unified workflow and module are verified
+**When** cleanup is applied
+**Then** the following legacy provisioning paths are removed or converted to documented compatibility wrappers:
+- `.github/workflows/onboard-konnect-teams.yaml`
+- `.github/workflows/provision-auth-identity.yaml`
+- `.github/workflows/provision-konnect-team-resources.yaml`
+- `terraform/konnect-teams/`
+- `teams/`
+- `konnect/auth-identity/`
+- `konnect/teams/`
+- the type-tagged Terraform implementation under `.github/actions/provision-konnect-resources/terraform/`, unless it has been repointed to `terraform/konnect/`
 
-**Given** all gate steps conform and no bypass patterns exist
-**When** the workflow runs on `main`
-**Then** the workflow succeeds
+**Given** `konnect/developer-portal/` and `konnect/dashboards/` contain resource data
+**When** cleanup is applied
+**Then** their content is migrated under `konnect/orgs/konnect/` and the old directories are retired
 
-### Story 4.5: Verify API publishing pipeline (Spectral lint + decK sync) end-to-end
-
-As an API-team developer,
-I want the `publish-api-configuration` action to lint my OpenAPI spec with the OWASP ruleset, surface failures clearly in PR checks, and idempotently sync the spec to the Konnect dev portal via decK,
-So that FR17–FR20 are verified to still work post-refactor and Journey 4 (Priya's invisible-platform-team experience) holds.
-
-**Acceptance Criteria:**
-
-**Given** the local stack is running and the action's bundled Spectral OWASP ruleset (`@stoplight/spectral-owasp-ruleset@^2.0`) is intact
-**When** I run a workflow that calls `publish-api-configuration` with a deliberately malformed OpenAPI spec (e.g., missing `info.x-business-unit` or violating an OWASP rule)
-**Then** the Spectral lint step fails the workflow
-**And** the failure output includes file path, line number, and rule ID for each violation (FR20, NFR13)
-**And** the failure surfaces in the PR check summary in a form that GitHub displays prominently (FR17)
-**And** the decK sync step does not run (NFR12 — gates cannot be bypassed)
-
-**Given** a well-formed OpenAPI spec
-**When** I run the same workflow
-**Then** Spectral lint passes
-**And** decK syncs the spec to the configured Konnect dev portal (FR18)
-**And** the dev portal reflects the published API
-
-**Given** the spec is unchanged from the previous successful run
-**When** I re-run the workflow
-**Then** decK reports no changes and exits 0 — no observable mutation in Konnect (FR19, idempotent sync)
-
-**Given** the workflow runs to completion
-**When** I inspect the captured logs
-**Then** `KONNECT_TOKEN` and any other secret material does not appear in the output (NFR4)
-**And** the workflow completes in ≤ 5 minutes (NFR2)
-
-## Epic 5: Documentation Synthesis, Migration Path & Vendor Cleanup
-
-Reader opens the top-level `README.md` cold and within 30 minutes understands the federated platform-ops model, the local-first quickstart, and the companion-repo location. SEs and forks can navigate `MIGRATION.md` to retain a cloud-backed configuration. The repository contains zero Datadog / Dynatrace references; vendor-neutral observability scaffolding is preserved.
-
-### Story 5.1: Strip Datadog and Dynatrace references repository-wide
-
-As a platform engineer,
-I want every Datadog and Dynatrace reference removed from the repository while vendor-neutral observability scaffolding (Kong status endpoints, default log format, Prometheus metrics) is preserved,
-So that NFR7's "no partner identifiers" intent and the PRD MVP §5 vendor-removal item are satisfied without losing demo-relevant generic telemetry.
-
-**Acceptance Criteria:**
-
-**Given** Architecture decision D6 and the enumeration approach (`git grep -i 'datadog\|dynatrace\|dd-\|dt-'`)
-**When** I run the grep across all tracked files
-**Then** I produce a complete inventory of references across `k8s/values.yaml`, any chart overlays in `.github/actions/deploy-dp/k8s/`, action inputs and READMEs, top-level documentation, and any helper scripts
-
-**Given** the inventory is complete
-**When** I remove references from `k8s/values.yaml` and any other tracked files (action inputs, README snippets, sample configs)
-**Then** post-strip, `git grep -i 'datadog\|dynatrace'` returns zero matches in tracked files
-**And** vendor-neutral observability scaffolding (Kong status endpoints, default log format, default Prometheus metrics exposition) remains intact and unchanged
-
-**Given** the strip is complete
-**When** I run the Epic 3 verification of `deploy-dp` against the local Kubernetes cluster
-**Then** the dataplane still deploys, registers with Konnect, and reports healthy — no observability-removal regression on the deploy path
-
-**Given** legacy users may rely on the removed observability stanzas
-**When** I update `MIGRATION.md` §1 in Story 5.2
-**Then** the migration entry includes a "Datadog and Dynatrace references removed" subsection pointing legacy users to integrate observability via a separate repository (per PRD out-of-scope statement)
-
-### Story 5.2: Author `MIGRATION.md` §1 (Legacy cloud-only → local-first) synthesizing Epics 2–4
-
-As an operator forking this repo from a pre-refactor version,
-I want `MIGRATION.md` §1 to describe every change between the legacy AWS-S3 + HashiCorp-Vault + cloud-K8s default and the new local-first defaults, with explicit instructions for retaining a cloud-backed configuration,
-So that I can choose between adopting the local defaults or keeping my existing cloud-backed setup with no surprises.
-
-**Acceptance Criteria:**
-
-**Given** Architecture pattern P5 (`MIGRATION.md` entry format) and the existing `MIGRATION.md` already containing §2 from Epic 1
-**When** I author "Migration 1 — Legacy cloud-only → local-first" as the first top-level section in `MIGRATION.md`
-**Then** the section covers each of these subsections, each following P5 format (Affected / Before / After / Remediation):
-  1. **State backend default** — AWS S3 → MinIO; how to set `TF_BACKEND_CONFIG=config.s3.tfbackend` to retain S3
-  2. **Secrets backend connection** — `VAULT_ADDR` swap from a real Vault cluster to docker-compose Vault dev container; how to override `VAULT_ADDR` and `VAULT_TOKEN` to point at an existing Vault cluster
-  3. **Kubernetes target** — cloud kubeconfig assumption replaced by local-default; how to pass `kubeconfig-content` to retain a cloud target
-  4. **Datadog and Dynatrace references removed** — guidance to integrate observability via a separate repository
-  5. **`scripts/create-s3-bucket.sh` rename** to `create-state-bucket.sh` with backward-compatibility note for any external callers
-
-**Given** the rewrite is complete
-**When** I read §1 and §2 in sequence
-**Then** the document reads as a unified migration narrative with the two top-level sections clearly distinguished
-**And** any breaking-change subsections required by FR27 (Composite Action breaking changes) appear as inline sub-entries under whichever migration introduced them — none expected for MVP, but the slot is reserved with structure
-
-**Given** the top-level `README.md` is rewritten in Story 5.3
-**When** that README references migration
-**Then** it anchor-links into specific subsections (e.g., `MIGRATION.md#state-backend-default`) so readers can jump directly to the relevant migration step
-
-### Story 5.3: Rewrite top-level `README.md` for local-first quickstart and federation framing
-
-As a prospect (Marcus) reading the repo cold,
-I want the top-level `README.md` to convey the federated platform-ops model, the local-first quickstart from `git clone` to first dataplane, and the location of the companion API-team reference repository — readable in under 30 minutes,
-So that I can decide whether to fork this repo as a starting point without running anything first.
-
-**Acceptance Criteria:**
-
-**Given** PRD FR34 (quickstart) and NFR19 (cold-readable in < 30 min)
-**When** I rewrite the top-level `README.md`
-**Then** the document opens with a one-paragraph framing of the federated platform-ops pattern (platform repo exposes Composite Actions; API-team repos consume them; the seam between them is the visible product)
-**And** includes a "Quickstart" section presenting the local-first bootstrap as a sequential list of commands and expected outputs, taking the reader from `git clone` to a successfully provisioned team and deployed dataplane
-**And** the Quickstart names the only required operator-supplied credential (`KONNECT_TOKEN` in `act.secrets`) per FR6
-**And** includes a "Repository structure" section explaining `.github/actions/` (the public API surface consumed by API teams) vs. `.github/workflows/` (platform-operator-run only) as the structural security boundary
-**And** includes a "Companion API-team reference repository" section with the link to that repo (URL TBD; section structure committed even if URL is a placeholder pending confirmation)
-**And** links to per-action READMEs (the four / five published actions) and to `MIGRATION.md` (legacy → local + provider 3.1.0 → 3.15)
-**And** briefly references the Flask onboarding webapp (`webapp/`) with a pointer to `webapp/README.md` (Story 5.4)
-
-**Given** the rewrite is complete
-**When** a reader unfamiliar with the repository reads the README cold (no other context)
-**Then** they can answer these three questions from the README alone, in under 30 minutes:
-  1. What is the federation seam between this repo and API-team repos?
-  2. What commands do I run, in what order, to go from a fresh clone to a working dataplane?
-  3. Where is the companion API-team repo I can look at to see the consumer side?
-
-**Given** the rewrite is complete
-**When** I check for vendor-specific identifiers
-**Then** the README contains no Datadog / Dynatrace references and no real customer / partner identifiers (NFR7)
-
-### Story 5.4: Verify Flask onboarding webapp produces schema-conformant output and document its usage
-
-As an operator,
-I want the bundled Flask webapp at `webapp/onboard_team_app.py` to produce team YAML output that passes the canonical YAML validator, and a `webapp/README.md` documenting how to run and use it,
-So that FR23 is delivered as a real working capability and an operator can rely on the webapp output flowing into the provisioning pipeline without manual cleanup.
-
-**Acceptance Criteria:**
-
-**Given** the local stack is running and the webapp can be launched via the existing convention (e.g., `python3 webapp/onboard_team_app.py` or a documented `make webapp` target if one exists)
-**When** I create or update `webapp/README.md`
-**Then** the README documents: the webapp's purpose (thin operator UI for authoring/editing team YAML), launch instructions, the URL/port the UI is served on, what fields the form captures, and the expected output location/format
-
-**Given** the webapp is running
-**When** I author a sample team via the UI (e.g., a fictional `flight-operations-2` team) and save the output
-**Then** the produced YAML conforms to the schema enforced by `provision-konnect-resources/scripts/validate-config.sh` (FR10) — i.e., `validate-config.sh` accepts the produced file with no errors
-
-**Given** the webapp is running
-**When** I edit an existing valid team YAML (e.g., `teams/flight-operations.yaml`) via the UI
-**Then** the round-tripped output remains schema-conformant and preserves all original required fields
-
-**Given** project-context.md's guidance ("keep business logic in shell scripts / Terraform — do not migrate Konnect logic into Python")
-**When** I review the webapp scope after this story
-**Then** the webapp is still strictly a thin operator UI — no Konnect API calls, no Vault access, no Terraform invocations from Python (any required scope-creep is flagged in the PR description rather than landed silently)
+**Given** the sprint change is implemented
+**When** planning documentation is reviewed
+**Then** the PRD, architecture ADR #002, epics, and sprint status all describe the same scope: one Sanofi-style org resource tree, one workflow, one Terraform module, one org-level state key, and per-team Vault entries preserved

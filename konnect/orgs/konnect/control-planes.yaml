@@ -1,0 +1,21 @@
+control_planes:
+
+  - name: flight-operations-cp-prod
+    description: Flight Operations control plane (prod)
+    labels:
+      team: flight-operations
+
+  - name: flight-operations-cp-qa
+    description: Flight Operations control plane (qa)
+    labels:
+      team: flight-operations
+
+  - name: flight-operations-cp-dev
+    description: Flight Operations control plane (dev)
+    labels:
+      team: flight-operations
+
+  - name: ground-operations-cp
+    description: Ground Operations control plane
+    labels:
+      team: ground-operations

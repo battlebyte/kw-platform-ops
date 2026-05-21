@@ -1,6 +1,7 @@
 type: konnect.team
 name: ground-operations
 description: Ground ops teams
+offboarded: false
 control_plane_roles:
 - entity_id: "*"
   region: eu

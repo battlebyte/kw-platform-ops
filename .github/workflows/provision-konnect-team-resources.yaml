@@ -99,7 +99,16 @@ jobs:
                   fi
                   echo "team=$team" >> $GITHUB_OUTPUT
 
-            - name: Ensure TF state S3 bucket exists
+            - name: Ensure TF state bucket exists (MinIO)
+              if: env.TF_BACKEND_CONFIG == 'config.minio.tfbackend'
+              shell: bash
+              run: |
+                  curl -sSfL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+                  chmod +x /usr/local/bin/mc
+                  mc alias set myminio http://localhost:9000 "${AWS_ACCESS_KEY_ID}" "${AWS_SECRET_ACCESS_KEY}" --api s3v4
+                  mc mb --ignore-existing "myminio/kw.konnect.team.resources.${{ steps.read-team.outputs.team }}"
+
+            - name: Ensure TF state bucket exists (AWS)
               if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
               shell: bash
               run: |

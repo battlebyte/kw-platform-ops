@@ -21,14 +21,14 @@ variable "konnect_region" {
   type        = string
 }
 
-variable "config_file" {
-  description = "Configuration file path"
+variable "org" {
+  description = "Konnect organisation name — selects the subdirectory under config_dir"
   type        = string
-  default     = ""
+  default     = "konnect"
 }
 
-variable "team_name" {
-  description = "The name of the team to create resources for"
+variable "config_dir" {
+  description = "Path to the directory containing org YAML config files"
   type        = string
 }
 

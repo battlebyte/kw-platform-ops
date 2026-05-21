@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-05-07"
-last_updated: "2026-05-14"  # story 2-6: review → done
+last_updated: "2026-05-21"  # sprint change proposal revised: drop epics 3/4/5, add new epic 3 (unified provisioning engine)
 project: kw-platform-ops
 project_key: NOKEY
 tracking_system: file-system
@@ -62,26 +62,18 @@ development_status:
   2-6-end-to-end-verification-of-make-prepare-against-minio-vault-on-a-clean-macos-clone: done
   epic-2-retrospective: optional
 
-  # Epic 3: Pluggable Kubernetes Target for Dataplane Deploys
+  # Epic 3 (original): Pluggable Kubernetes Target — CANCELLED 2026-05-21 (strategic pivot to unified provisioning engine)
+  epic-3-pluggable-k8s: cancelled
+
+  # Epic 4: API Publishing & Action Contract Stability — CANCELLED 2026-05-21 (deprioritised)
+  epic-4-api-publishing: cancelled
+
+  # Epic 5: Documentation Synthesis — CANCELLED 2026-05-21 (deprioritised; existed in epics.md only)
+
+  # Epic 3 (new): Unified Konnect Provisioning Engine
   epic-3: backlog
-  3-1-add-paired-kubeconfig-path-kubeconfig-content-inputs-to-deploy-dp-action: backlog
-  3-2-verify-local-kubernetes-deployment-end-to-end-orbstack-docker-desktop: backlog
-  3-3-verify-cloud-kubernetes-deployment-via-kubeconfig-content: backlog
+  3-1-build-unified-terraform-module: backlog
+  3-2-migrate-yaml-to-sanofi-style-konnect-orgs-syntax: backlog
+  3-3-create-single-provision-konnect-resources-workflow: backlog
+  3-4-verify-e2e-and-retire-obsolete-provisioning-paths: backlog
   epic-3-retrospective: optional
-
-  # Epic 4: API Publishing & Action Contract Stability
-  epic-4: backlog
-  4-1-audit-and-complete-action-yml-declarations-for-every-published-composite-action: backlog
-  4-2-author-p4-conformant-readme-for-every-published-composite-action: backlog
-  4-3-implement-lint-action-contracts-yaml-ci-workflow-enforcing-readme-action-yml-non-divergence: backlog
-  4-4-implement-lint-no-bypass-yaml-ci-workflow-with-p3-step-name-audit: backlog
-  4-5-verify-api-publishing-pipeline-spectral-lint-deck-sync-end-to-end: backlog
-  epic-4-retrospective: optional
-
-  # Epic 5: Documentation Synthesis, Migration Path & Vendor Cleanup
-  epic-5: backlog
-  5-1-strip-datadog-and-dynatrace-references-repository-wide: backlog
-  5-2-author-migration-md-1-legacy-cloud-only-local-first-synthesizing-epics-2-4: backlog
-  5-3-rewrite-top-level-readme-md-for-local-first-quickstart-and-federation-framing: backlog
-  5-4-verify-flask-onboarding-webapp-produces-schema-conformant-output-and-document-its-usage: backlog
-  epic-5-retrospective: optional

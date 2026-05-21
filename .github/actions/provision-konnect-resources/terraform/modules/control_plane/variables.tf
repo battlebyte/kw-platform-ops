@@ -34,9 +34,13 @@ variable "cloud_gateway" {
 }
 
 variable "team" {
-  description = "The team to assign the resources to"
+  description = "The team to associate with this control plane (used for Vault secret path). Leave empty to skip Vault write."
   type = object({
     id   = string
     name = string
   })
+  default = {
+    id   = ""
+    name = ""
+  }
 }

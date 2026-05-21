@@ -94,7 +94,7 @@ The refactor has shipped successfully when all of the following are true:
 
 - **Zero hard dependency on third-party cloud infrastructure in the default path.** No AWS account, no HashiCorp Vault cluster, no cloud Kubernetes required for the documented happy path.
 - **Konnect Terraform provider on `kong/konnect = 3.15`** (latest), with all existing resources continuing to plan and apply cleanly. State migration from 3.1.0 documented; no breaking changes left unhandled.
-- **All platform workflows run successfully via `act` on macOS** (`onboard-konnect-teams`, `developer-portal`, `deploy-dp`, `test-sync-api-configuration`, `publish-api-configuration`). 100% pass rate on a clean checkout.
+- **All active platform workflows run successfully via `act` on macOS.** After the 2026-05-21 Sprint Change Proposal, Konnect provisioning is consolidated into `provision-konnect-resources.yaml`; retired provisioning workflows are excluded from the active support matrix.
 - **HashiCorp Vault is retained as the sole secrets backend** per Architecture ADR #001. Default path runs HashiCorp Vault as a local docker-compose dev container at `:8300`; production overrides `VAULT_ADDR` (and `VAULT_TOKEN`) to point at a real Vault cluster. Same provider, same module, same paths — only the connection target changes. Konnect Vault is out of scope.
 - **MinIO replaces AWS S3** as the Terraform state backend in the default path. The `scripts/create-s3-bucket.sh` flow works against MinIO with no code branching at the call site. AWS S3 remains supported as a swappable provider.
 - **Local Kubernetes target supported** for dataplane deploys (OrbStack / Docker Desktop). Cloud K8s remains supported as a swappable target.
@@ -103,15 +103,15 @@ The refactor has shipped successfully when all of the following are true:
 
 ### Measurable Outcomes
 
-| Outcome | Current State | Target |
-|---|---|---|
-| Cloud accounts required for default demo | AWS + (optional) Vault SaaS + cloud K8s | 0 |
-| Time from clean MacBook clone to first dataplane deployed | hours (varies; often blocked) | < 20 min |
-| Konnect provider version | `3.1.0` | `3.15` |
-| Platform workflows runnable via `act` on macOS | partial | 100% |
-| Backend swap (MinIO ↔ S3 state; local Vault ↔ remote Vault cluster; local ↔ cloud K8s) documented | no | yes, single-knob swap |
-| Dynatrace / Datadog references in repo | present | 0 |
-| Documented federation seam (platform repo ↔ API-team repo example) | no companion example | yes |
+| Outcome                                                                                           | Current State                           | Target                |
+| ------------------------------------------------------------------------------------------------- | --------------------------------------- | --------------------- |
+| Cloud accounts required for default demo                                                          | AWS + (optional) Vault SaaS + cloud K8s | 0                     |
+| Time from clean MacBook clone to first dataplane deployed                                         | hours (varies; often blocked)           | < 20 min              |
+| Konnect provider version                                                                          | `3.1.0`                                 | `3.15`                |
+| Platform workflows runnable via `act` on macOS                                                    | partial                                 | 100%                  |
+| Backend swap (MinIO ↔ S3 state; local Vault ↔ remote Vault cluster; local ↔ cloud K8s) documented | no                                      | yes, single-knob swap |
+| Dynatrace / Datadog references in repo                                                            | present                                 | 0                     |
+| Documented federation seam (platform repo ↔ API-team repo example)                                | no companion example                    | yes                   |
 
 ## User Journeys
 
@@ -121,7 +121,7 @@ The refactor has shipped successfully when all of the following are true:
 
 **Opening scene.** It's 9:15 AM. Sofia opens her MacBook on a hotel desk in Stockholm. No corporate VPN. No AWS console. She has thirty minutes to get a runnable demo.
 
-**Rising action.** She runs `git clone` and `make prepare`. The Makefile checks dependencies (Docker, `act`, `gh`, `terraform`, `helm`, `kubectl`), brings up MinIO + the GitHub Actions runner + a HashiCorp Vault dev container via `docker-compose`, all on her laptop. She sets `KONNECT_TOKEN` in `act.secrets`, runs `make` to validate the YAML for `teams/flight-operations.yaml`, and watches `act` execute `onboard-konnect-teams.yaml` against her tenant. Twelve minutes in, the team exists in Konnect. She runs `deploy-dp` against her local OrbStack cluster — Helm pulls `kong/kong`, the dataplane comes up, and she sees it register with the hosted Konnect control plane.
+**Rising action.** She runs `git clone` and `make prepare`. The Makefile checks dependencies (Docker, `act`, `gh`, `terraform`, `helm`, `kubectl`), brings up MinIO + the GitHub Actions runner + a HashiCorp Vault dev container via `docker-compose`, all on her laptop. She sets `KONNECT_TOKEN` in `act.secrets`, reviews the Sanofi-style YAML under `konnect/orgs/konnect/`, and watches `act` execute `provision-konnect-resources.yaml` against her tenant. Twelve minutes in, the team and its Konnect resources exist in Konnect, with the team's system-account token stored in HashiCorp Vault.
 
 **Climax.** At 9:52 AM, she has a working dataplane, a provisioned team, and a published API spec — entirely on her laptop. She rehearses the talk-track once: *"This is the platform repo. The Actions you see in `.github/actions/` — that's the contract. An API team's repository looks like this..."* and opens the companion API-team repo as a second tab.
 
@@ -216,23 +216,23 @@ These two modes together define the product surface. Neither is optional.
 
 The reference stack is pinned and explicit. Drift here is a regression.
 
-| Tool | Pin / Version | Notes |
-|---|---|---|
-| Konnect Terraform provider (`kong/konnect`) | `3.15` | Bumped from `3.1.0`; latest at refactor time. Exact pin — no `~>`. |
-| Terraform CLI | `latest` (via `hashicorp/setup-terraform@v3`) | `init -reconfigure` supported for backend swaps. |
-| decK CLI | `v1.51.0` | Pinned in `publish-api-configuration`. |
-| Spectral CLI (`@stoplight/spectral-cli`) | latest, OWASP ruleset `^2.0` | Lint gates must not be bypassed. |
-| Helm | `azure/setup-helm@v4` | Chart `kong/kong` (not `kong/kong-gateway`). |
-| Helm chart (`kong/kong`) | default `2.45.0` (overridable) | Chart version independent of image tag. |
-| Kong Gateway image | default `3.11.0.2` (overridable) | Operator-set per `deploy-dp` invocation. |
-| `kubectl` | `azure/setup-kubectl@v4` | Targets local (OrbStack/Docker Desktop) or cloud cluster. |
-| AWS provider (Terraform) | `eu-central-1` defaults | Used only when state backend = AWS S3. |
-| `act` runner image | `pantsel/gh-runner:latest` | Required for parity with this repo's actions. |
-| `yq` | latest (mikefarah build) | Installed on demand by actions. |
-| MinIO | `docker-compose`-managed (default local backend) | Replaces real AWS S3 in default path. |
-| HashiCorp Vault | docker-compose dev container (local default, `:8300`) or real cluster (production, operator-supplied `VAULT_ADDR` + `VAULT_TOKEN`) | Sole secrets backend per ADR #001. Same provider, same paths; only the connection target changes. Konnect Vault is out of scope. |
-| Local Kubernetes | OrbStack or Docker Desktop | Default `deploy-dp` target. |
-| Python (Flask onboard webapp) | system Python 3 | Thin operator UI; logic stays in Bash/Terraform. |
+| Tool                                        | Pin / Version                                                                                                                      | Notes                                                                                                                            |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Konnect Terraform provider (`kong/konnect`) | `3.15`                                                                                                                             | Bumped from `3.1.0`; latest at refactor time. Exact pin — no `~>`.                                                               |
+| Terraform CLI                               | `latest` (via `hashicorp/setup-terraform@v3`)                                                                                      | `init -reconfigure` supported for backend swaps.                                                                                 |
+| decK CLI                                    | `v1.51.0`                                                                                                                          | Pinned in `publish-api-configuration`.                                                                                           |
+| Spectral CLI (`@stoplight/spectral-cli`)    | latest, OWASP ruleset `^2.0`                                                                                                       | Lint gates must not be bypassed.                                                                                                 |
+| Helm                                        | `azure/setup-helm@v4`                                                                                                              | Chart `kong/kong` (not `kong/kong-gateway`).                                                                                     |
+| Helm chart (`kong/kong`)                    | default `2.45.0` (overridable)                                                                                                     | Chart version independent of image tag.                                                                                          |
+| Kong Gateway image                          | default `3.11.0.2` (overridable)                                                                                                   | Operator-set per `deploy-dp` invocation.                                                                                         |
+| `kubectl`                                   | `azure/setup-kubectl@v4`                                                                                                           | Targets local (OrbStack/Docker Desktop) or cloud cluster.                                                                        |
+| AWS provider (Terraform)                    | `eu-central-1` defaults                                                                                                            | Used only when state backend = AWS S3.                                                                                           |
+| `act` runner image                          | `pantsel/gh-runner:latest`                                                                                                         | Required for parity with this repo's actions.                                                                                    |
+| `yq`                                        | latest (mikefarah build)                                                                                                           | Installed on demand by actions.                                                                                                  |
+| MinIO                                       | `docker-compose`-managed (default local backend)                                                                                   | Replaces real AWS S3 in default path.                                                                                            |
+| HashiCorp Vault                             | docker-compose dev container (local default, `:8300`) or real cluster (production, operator-supplied `VAULT_ADDR` + `VAULT_TOKEN`) | Sole secrets backend per ADR #001. Same provider, same paths; only the connection target changes. Konnect Vault is out of scope. |
+| Local Kubernetes                            | OrbStack or Docker Desktop                                                                                                         | Default `deploy-dp` target.                                                                                                      |
+| Python (Flask onboard webapp)               | system Python 3                                                                                                                    | Thin operator UI; logic stays in Bash/Terraform.                                                                                 |
 
 The pluggable backends each have **two** valid configurations: state (MinIO ↔ AWS S3) and Kubernetes (local ↔ cloud) are vendor-pluggable; the secrets backend (HashiCorp Vault, sole vendor per ADR #001) is connection-pluggable (local docker-compose Vault ↔ real Vault cluster, same provider). The PRD considers a backend "supported" only when both configurations work end-to-end.
 
@@ -260,12 +260,12 @@ The Composite Actions in `.github/actions/` constitute the platform team's **pub
 
 #### Published Actions (the contract)
 
-| Action | Purpose | Consumer |
-|---|---|---|
+| Action                        | Purpose                                                                               | Consumer                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `provision-konnect-resources` | Create / update Konnect resources (teams, control planes, APIs) from declarative YAML | Platform workflows; alt-callable from API-team repos for self-serve resource creation |
-| `publish-api-configuration` | Lint OpenAPI (Spectral), encode for decK, sync to Konnect dev portal | API-team workflows |
-| `deploy-dp` | Deploy a Kong Gateway dataplane via Helm against a configured k8s target | Platform workflows; alt-callable for team-scoped rollouts |
-| `setup-k8s-tools` | Install kubectl + helm at consistent versions | Platform & team workflows |
+| `publish-api-configuration`   | Lint OpenAPI (Spectral), encode for decK, sync to Konnect dev portal                  | API-team workflows                                                                    |
+| `deploy-dp`                   | Deploy a Kong Gateway dataplane via Helm against a configured k8s target              | Platform workflows; alt-callable for team-scoped rollouts                             |
+| `setup-k8s-tools`             | Install kubectl + helm at consistent versions                                         | Platform & team workflows                                                             |
 
 #### Action contract requirements
 
@@ -431,17 +431,21 @@ These functional requirements define the complete capability contract for `kw-pl
 
 ### Dataplane Deployment
 
-- **FR13.** An operator can deploy a Kong Gateway dataplane to a local Kubernetes cluster (OrbStack or Docker Desktop) via the `deploy-dp` Action.
-- **FR14.** An operator can deploy a Kong Gateway dataplane to a cloud Kubernetes cluster via the same `deploy-dp` Action by changing only configuration inputs — no source code changes.
-- **FR15.** An operator can specify the Kong Gateway image tag and the Helm chart version per `deploy-dp` invocation, with documented defaults.
-- **FR16.** A deployed dataplane registers with the hosted Konnect control plane and reports a healthy status in Konnect's view of the dataplane.
+_~~FR13–FR16 deferred — Epic 3 (Pluggable K8s) cancelled 2026-05-21 per Sprint Change Proposal.~~_
+
+- ~~**FR13.**~~ An operator can deploy a Kong Gateway dataplane to a local Kubernetes cluster (OrbStack or Docker Desktop) via the `deploy-dp` Action. _(deferred)_
+- ~~**FR14.**~~ An operator can deploy a Kong Gateway dataplane to a cloud Kubernetes cluster via the same `deploy-dp` Action by changing only configuration inputs. _(deferred)_
+- ~~**FR15.**~~ An operator can specify the Kong Gateway image tag and the Helm chart version per `deploy-dp` invocation, with documented defaults. _(deferred)_
+- ~~**FR16.**~~ A deployed dataplane registers with the hosted Konnect control plane and reports a healthy status in Konnect's view of the dataplane. _(deferred)_
 
 ### API Configuration Publishing
 
-- **FR17.** An API-team workflow can lint an OpenAPI specification using the bundled Spectral OWASP ruleset and surface lint failures as PR-time GitHub check feedback.
-- **FR18.** An API-team workflow can publish a linted OpenAPI specification to a Konnect-managed dev portal via decK in a single Action invocation.
-- **FR19.** Re-running the publish workflow against an unchanged OpenAPI specification produces no observable change in Konnect (idempotent sync).
-- **FR20.** Lint failures from the publishing pipeline include file, line, and rule context in the surfaced error — not raw log output.
+_~~FR17–FR20 deferred — Epic 4 (API Publishing) cancelled 2026-05-21 per Sprint Change Proposal.~~_
+
+- ~~**FR17.**~~ An API-team workflow can lint an OpenAPI specification using the bundled Spectral OWASP ruleset and surface lint failures as PR-time GitHub check feedback. _(deferred)_
+- ~~**FR18.**~~ An API-team workflow can publish a linted OpenAPI specification to a Konnect-managed dev portal via decK in a single Action invocation. _(deferred)_
+- ~~**FR19.**~~ Re-running the publish workflow against an unchanged OpenAPI specification produces no observable change in Konnect (idempotent sync). _(deferred)_
+- ~~**FR20.**~~ Lint failures from the publishing pipeline include file, line, and rule context in the surfaced error — not raw log output. _(deferred)_
 
 ### Developer Portal & Dashboards
 
@@ -450,27 +454,38 @@ These functional requirements define the complete capability contract for `kw-pl
 
 ### Operator Onboarding Webapp
 
-- **FR23.** An operator can use the bundled Flask webapp (`webapp/onboard_team_app.py`) to author or edit a team YAML resource interactively, producing output that conforms to the YAML schema enforced by FR10.
+_~~FR23 deferred — Epic 5 (Docs Synthesis) cancelled 2026-05-21 per Sprint Change Proposal.~~_
+
+- ~~**FR23.**~~ An operator can use the bundled Flask webapp (`webapp/onboard_team_app.py`) to author or edit a team YAML resource interactively. _(deferred)_
 
 ### Action Contract Stability
 
-- **FR24.** Every published Composite Action declares all inputs (with `description`, `required`, and `default` for optional inputs) and all outputs (with `description`) in its `action.yml`.
-- **FR25.** Every published Composite Action ships a `README.md` documenting its inputs, outputs, side effects, an example caller workflow, and common failure modes — matching the structure of the `provision-konnect-resources` README.
-- **FR26.** An API-team workflow can reference a published Composite Action by a version-pinned ref (tag or commit SHA) and receive stable input/output contract behavior at that ref.
-- **FR27.** Breaking changes to any published Composite Action's input or output contract are documented in `MIGRATION.md` with a remediation step for callers.
-- **FR28.** A reader can determine the full input/output contract of every published Composite Action by reading the repository alone, without running any workflow.
+_~~FR24–FR28 deferred — Epic 4 (API Publishing & Contract Stability) cancelled 2026-05-21 per Sprint Change Proposal.~~_
+
+- ~~**FR24.**~~ Every published Composite Action declares all inputs (with `description`, `required`, and `default` for optional inputs) and all outputs (with `description`) in its `action.yml`. _(deferred)_
+- ~~**FR25.**~~ Every published Composite Action ships a `README.md` documenting its inputs, outputs, side effects, an example caller workflow, and common failure modes. _(deferred)_
+- ~~**FR26.**~~ An API-team workflow can reference a published Composite Action by a version-pinned ref (tag or commit SHA) and receive stable input/output contract behavior at that ref. _(deferred)_
+- ~~**FR27.**~~ Breaking changes to any published Composite Action's input or output contract are documented in `MIGRATION.md` with a remediation step for callers. _(deferred)_
+- ~~**FR28.**~~ A reader can determine the full input/output contract of every published Composite Action by reading the repository alone, without running any workflow. _(deferred)_
 
 ### Backend & Target Configuration
 
 - **FR29.** An operator can select the Terraform state backend between local MinIO (default) and AWS S3 (alternative) via documented configuration, without modifying HCL source.
 - **FR30.** An operator can select the HashiCorp Vault connection target between a local docker-compose dev Vault (default) and a real Vault cluster (alternative) by overriding `VAULT_ADDR` (and `VAULT_TOKEN`), without modifying Terraform module source. Konnect Vault is out of scope per Architecture ADR #001.
-- **FR31.** An operator can select the Kubernetes deployment target between local clusters (OrbStack / Docker Desktop, default) and any cloud cluster (alternative) via the `deploy-dp` Action's documented inputs.
+- ~~**FR31.**~~ An operator can select the Kubernetes deployment target between local clusters (OrbStack / Docker Desktop, default) and any cloud cluster (alternative) via the `deploy-dp` Action's documented inputs. _(deferred — Epic 3 cancelled)_
 
 ### Migration & Documentation
 
-- **FR32.** The repository provides a `MIGRATION.md` documenting the migration path from the previous AWS-S3-and-HashiCorp-Vault setup to the new local-first defaults, including instructions for users who wish to retain a cloud-backed configuration.
-- **FR33.** `MIGRATION.md` documents the Terraform state migration steps required when upgrading the Konnect provider from `3.1.0` to `3.15`, including any required `terraform state mv` operations and verification steps.
-- **FR34.** The top-level `README.md` provides a quickstart that takes an SE from a fresh `git clone` to a successfully deployed dataplane, expressed as a sequential list of commands and expected outputs.
+- ~~**FR32.**~~ The repository provides a `MIGRATION.md` documenting the migration path from the previous AWS-S3-and-HashiCorp-Vault setup to the new local-first defaults. _(deferred — Epic 5 cancelled)_
+- **FR33.** `MIGRATION.md` documents the Terraform state migration steps required when upgrading the Konnect provider from `3.1.0` to `3.15`, including any required `terraform state mv` operations and verification steps. _(delivered — Epic 1)_
+- ~~**FR34.**~~ The top-level `README.md` provides a quickstart that takes an SE from a fresh `git clone` to a successfully deployed dataplane, expressed as a sequential list of commands and expected outputs. _(deferred — Epic 5 cancelled)_
+
+### Unified Konnect Provisioning Engine _(new — Sprint Change Proposal 2026-05-21)_
+
+- **FR35.** An operator can provision every Konnect resource type supported by this repository via a single `provision-konnect-resources.yaml` workflow, including teams, system accounts, control planes, control-plane child resources, portals, APIs, application auth strategies, authentication settings, identity provider mappings, dashboards, and future supported Konnect provider resources.
+- **FR36.** All Konnect resources are declared in Sanofi-style YAML files under `konnect/orgs/<org>/`, with files grouped by resource type and merged into one org config, serving as the single source of truth.
+- **FR37.** Konnect provisioning state is managed in a single S3/MinIO bucket under a per-org key (`konnect/orgs/<org>/terraform.tfstate`); no per-team state buckets are required.
+- **FR38.** Per-team system account tokens are stored in HashiCorp Vault at `system-accounts/sa-<team-name>` as part of the unified provisioning pipeline.
 
 ## Non-Functional Requirements
 
@@ -493,7 +508,7 @@ These NFRs specify HOW WELL the system must behave. They complement, but do not 
 
 ### Reliability & Compatibility
 
-- **NFR10.** **100% of platform workflows** (`onboard-konnect-teams`, `developer-portal`, `deploy-dp`, `test-sync-api-configuration`, `publish-api-configuration`) run end-to-end via `act` on macOS without manual hand-edits.
+- **NFR10.** **100% of active platform workflows** run end-to-end via `act` on macOS without manual hand-edits. After the Sprint Change Proposal, the provisioning path is represented by the single `provision-konnect-resources.yaml` workflow; retired workflows are excluded from the active support matrix.
 - **NFR11.** The repository is verified to work on the latest two major macOS versions running on Apple Silicon. Intel Macs and Linux are not a tested support matrix; they may work but are not blocking.
 - **NFR12.** Validation gates (YAML schema validation, Spectral OpenAPI lint, `terraform plan` consistency, schema-required field checks) cannot be bypassed via `continue-on-error: true`, `|| true`, or any equivalent pattern. Lint or plan failures cause workflow failure.
 - **NFR13.** Error output from any validation, lint, or plan step includes sufficient context (file path, line number, rule ID or resource address) for an SE to identify the cause and apply a documented one-line fix without consulting external resources.
