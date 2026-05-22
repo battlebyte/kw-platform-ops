@@ -1,5 +1,13 @@
 # Deferred Work
 
+## Deferred from: code review of 3-3-create-single-provision-konnect-resources-workflow (2026-05-22)
+
+- **(LOW)** `.github/workflows/provision-konnect-resources.yaml:54` — `terraform_version: "latest"` is non-reproducible. A Terraform major version bump could silently change plan behavior between runs. Pre-existing project convention (`hashicorp/setup-terraform@v3` with `terraform_version: latest`); pin to a specific version in a future hardening pass.
+- **(LOW)** `.github/workflows/provision-konnect-resources.yaml` — Third-party actions pinned to mutable floating tags (`@v4`, `@v3`, `@v1`), not commit SHAs. Tags can be force-pushed. Pre-existing project-wide convention documented in project-context.md; address in a repo-wide supply-chain hardening pass.
+- **(LOW)** `.github/workflows/provision-konnect-resources.yaml:78-80` — MinIO credentials (`minio-root-user` / `minio-root-password`) hardcoded in workflow body. Pre-existing local dev convention matching `docker-compose.yaml` MinIO defaults; would benefit from `vars.MINIO_ROOT_USER` / `vars.MINIO_ROOT_PASSWORD` with hardcoded fallbacks.
+- **(LOW)** `.github/workflows/provision-konnect-resources.yaml` — `TF_VAR_vault_address` defaults to `http://localhost:8300`, sending Vault auth in plaintext when `vars.VAULT_ADDR` is unset. Pre-existing project convention; acceptable for local-first demo setup.
+- **(LOW)** `.github/workflows/provision-konnect-resources.yaml` — Missing required secrets (`KONNECT_TOKEN`, `VAULT_TOKEN`) result in opaque Terraform provider errors at plan/apply time rather than a fast-fail message. No spec requirement for early validation; Terraform surfaces auth errors early enough in practice.
+
 ## Deferred from: code review of 3-2-migrate-yaml-to-sanofi-style-konnect-orgs-syntax (2026-05-21)
 
 - **(MED)** `konnect/orgs/konnect/portals.yaml:83` — Placeholder/gibberish domain `kongair.some-random-domain-347t783t5q53.com` in `robots` Sitemap URL. Faithfully migrated from `konnect/developer-portal/config.yaml` source. Real FQDN should replace this when the portal is deployed to production.

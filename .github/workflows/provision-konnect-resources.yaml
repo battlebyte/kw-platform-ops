@@ -1,0 +1,149 @@
+name: Provision Konnect Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      org:
+        description: "Konnect organisation name (selects konnect/orgs/<org>/*.yaml)"
+        required: false
+        default: "konnect"
+        type: string
+      action:
+        description: "Terraform action to perform"
+        required: false
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+      rotate-certs:
+        description: "Rotate TLS certificates (reserved for future use; no-op in this story)"
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - "konnect/orgs/**"
+
+jobs:
+  provision-konnect-resources:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: tf-konnect-${{ inputs.org || 'konnect' }}
+      cancel-in-progress: false
+    # Require approval for apply, destroy, and GitOps push runs.
+    # Configure required reviewers on the 'konnect-production' environment in repo Settings.
+    environment: ${{ (inputs.action == 'apply' || inputs.action == 'destroy' || github.event_name == 'push') && 'konnect-production' || '' }}
+    env:
+      # Backend selection — defaults to MinIO for local act runs; set vars.TF_BACKEND_CONFIG=config.s3.tfbackend for AWS
+      TF_BACKEND_CONFIG: ${{ vars.TF_BACKEND_CONFIG || 'config.minio.tfbackend' }}
+
+      # Terraform working directory
+      TERRAFORM_DIR: ${{ github.workspace }}/terraform/konnect
+
+      # Konnect — provider reads local.konnect_token = coalesce(var.konnect_access_token, var.konnect_token, "")
+      TF_VAR_konnect_access_token: ${{ secrets.KONNECT_TOKEN }}
+      TF_VAR_konnect_server_url: ${{ vars.KONNECT_SERVER_URL || 'https://eu.api.konghq.com' }}
+
+      # Vault — provider reads var.vault_address and var.vault_token directly
+      TF_VAR_vault_address: ${{ vars.VAULT_ADDR || 'http://localhost:8300' }}
+      TF_VAR_vault_token: ${{ secrets.VAULT_TOKEN }}
+
+      # Org — selects konnect/orgs/<org>/*.yaml and sets state key
+      TF_VAR_org: ${{ inputs.org || 'konnect' }}
+
+    steps:
+      - name: Validate inputs
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [[ -n "${{ inputs.org }}" && ! "${{ inputs.org }}" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+            echo "::error::Invalid org value '${{ inputs.org }}' — must match ^[a-z0-9][a-z0-9-]*$"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Warn rotate-certs is a no-op
+        if: inputs.rotate-certs == true
+        shell: bash
+        run: echo "::warning::rotate-certs=true was set but certificate rotation is not yet implemented. This input is reserved for future use and has been ignored."
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "latest"
+
+      - name: Install AWS CLI
+        id: install-aws-cli
+        if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
+        uses: unfor19/install-aws-cli-action@v1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'eu-central-1' }}
+
+      - name: Set mock AWS credentials for MinIO backend
+        if: env.TF_BACKEND_CONFIG == 'config.minio.tfbackend'
+        shell: bash
+        run: |
+          echo "AWS_ACCESS_KEY_ID=minio-root-user" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=minio-root-password" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=eu-central-1" >> $GITHUB_ENV
+
+      - name: Ensure TF state bucket exists
+        shell: bash
+        working-directory: ${{ github.workspace }}/scripts
+        run: |
+          if [ "${{ env.TF_BACKEND_CONFIG }}" = "config.minio.tfbackend" ]; then
+            ./create-state-bucket.sh tfstate minio
+          else
+            ./create-state-bucket.sh kw.konnect.terraform-state aws
+          fi
+
+      - name: Init Terraform
+        uses: ./.github/actions/init-terraform
+        with:
+          terraform-dir: ${{ env.TERRAFORM_DIR }}
+          backend-config-path: ${{ env.TF_BACKEND_CONFIG }}
+          backend-config-overrides: |
+            key=konnect/orgs/${{ env.TF_VAR_org }}/terraform.tfstate
+
+      - name: Validate Terraform config
+        shell: bash
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform validate
+
+      - name: Plan Konnect resources
+        if: inputs.action != 'destroy'
+        shell: bash
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform plan -out=tfplan
+
+      - name: Plan Konnect resources (destroy preview)
+        if: inputs.action == 'destroy'
+        shell: bash
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform plan -destroy -out=tfplan
+
+      - name: Apply Konnect resources
+        if: github.event_name == 'push' || inputs.action == 'apply'
+        shell: bash
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Destroy Konnect resources
+        if: inputs.action == 'destroy'
+        shell: bash
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform apply -auto-approve tfplan
