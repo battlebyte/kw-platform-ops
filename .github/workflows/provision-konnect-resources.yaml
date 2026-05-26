@@ -95,10 +95,11 @@ jobs:
             [[ "${ARCH}" == "aarch64" ]] && ARCH="aarch64" || ARCH="x86_64"
             curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip"     -o /tmp/awscliv2.zip
             curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip.sig" -o /tmp/awscliv2.zip.sig
-            curl -fsSL "https://awscli.amazonaws.com/awscli-public-key-v2.pub"         -o /tmp/awscli-key.pub
-            # Verify PGP signature against AWS public key before execution
+            # Verify PGP signature: fetch AWS key (ID A6310ACC4672475C, fingerprint FB5D B77F D5C1 18B8 0511 ADA8 A631 0ACC 4672 475C) from keyserver
             GNUPGHOME=$(mktemp -d)
-            gpg --batch --homedir "${GNUPGHOME}" --import /tmp/awscli-key.pub
+            gpg --batch --homedir "${GNUPGHOME}" \
+                --keyserver hkps://keyserver.ubuntu.com \
+                --recv-keys A6310ACC4672475C
             gpg --batch --homedir "${GNUPGHOME}" --verify /tmp/awscliv2.zip.sig /tmp/awscliv2.zip
             rm -rf "${GNUPGHOME}"
             unzip -q /tmp/awscliv2.zip -d /tmp/awscliv2-extract

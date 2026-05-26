@@ -12,6 +12,26 @@ resource "konnect_identity_provider" "this" {
   login_path = var.login_path
   type       = var.idp_type
 
+  # Konnect API returns 400 on DELETE when OIDC/SAML is still enabled at the org level.
+  # The org-level auth setting must be disabled via PATCH /v3/authentication-settings
+  # before Terraform can DELETE the identity provider.
+  # $TF_VAR_konnect_access_token is injected by the workflow/local env.
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      if [ "${self.type}" = "oidc" ]; then
+        BODY='{"oidc_auth_enabled":false}'
+      else
+        BODY='{"saml_auth_enabled":false}'
+      fi
+      curl -fsS -X PATCH \
+        -H "Authorization: Bearer $TF_VAR_konnect_access_token" \
+        -H "Content-Type: application/json" \
+        -d "$BODY" \
+        "https://global.api.konghq.com/v3/authentication-settings"
+    EOT
+  }
+
   config = (
     var.oidc_issuer_url != null ||
     var.saml_idp_metadata_url != null ||
