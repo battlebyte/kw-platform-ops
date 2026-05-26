@@ -36,5 +36,12 @@ resource "konnect_application_auth_strategy" "this" {
       }
     }
   } : null
+
+  # Nested ForceNew attributes (e.g. key_auth.configs.key_auth.ttl, key_auth.labels)
+  # may appear as additions after import due to provider schema evolution in 3.17.0.
+  # Ignoring them prevents accidental destroy-recreate on imported resources.
+  lifecycle {
+    ignore_changes = [key_auth, openid_connect]
+  }
 }
 

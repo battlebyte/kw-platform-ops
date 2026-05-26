@@ -5,9 +5,9 @@ dashboards:
       owner: platform
     definition:
       preset_filters:
+        # API constraint (Konnect API 3.17, verified 2026-05-26 E2E): 'value' field rejected for realm filter; not_empty is the only accepted form
         - field: realm
           operator: not_empty
-          value: '{"match": "production"}'
       tiles:
         - chart:
             type: chart
@@ -29,12 +29,13 @@ dashboards:
                   dimensions:
                     - api_product
                   filters:
+                    # API constraint (Konnect API 3.17, verified 2026-05-26 E2E): not_in with value field rejected; not_empty is the only accepted form for status_code_grouped
                     - field: status_code_grouped
-                      operator: not_in
-                      value: '{"values":["5XX"]}'
+                      operator: not_empty
                   granularity: hourly
                   metrics:
-                    - kong_latency_p95
+                    # API constraint (Konnect API 3.17, verified 2026-05-26 E2E): kong_latency_p95 rejected; request_count is the supported metric
+                    - request_count
                   time_range:
                     relative:
                       time_range: 7d

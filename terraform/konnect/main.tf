@@ -723,11 +723,25 @@ module "identity_provider_team_group_mappings" {
   }
 
   group = each.value.group
-  identity_provider_id = try(
-    module.identity_providers[each.value.identity_provider_name].id,
-    each.value.identity_provider_id
+  identity_provider_id = (
+    lookup(each.value, "identity_provider_name", null) != null
+    # P1: wrap with try() so a missing module key yields null rather than crashing
+    ? try(module.identity_providers[lookup(each.value, "identity_provider_name", null)].id, null)
+    # P2: wrap coalesce() with try() so all-null paths return null rather than panicking
+    : try(
+      coalesce(
+        lookup(each.value, "identity_provider_id", null),
+        try(module.identity_providers[local.identity_providers[0].name].id, null)
+      ),
+      null
+    )
   )
-  team_id = try(module.teams[each.value.team_name].id, each.value.team_id)
+  # P3: use null sentinel (not "") so try() can catch a missing team key cleanly
+  team_id = (
+    lookup(each.value, "team_name", null) != null
+    ? try(module.teams[each.value.team_name].id, null)
+    : lookup(each.value, "team_id", null)
+  )
 
   depends_on = [module.identity_providers, module.teams]
 }

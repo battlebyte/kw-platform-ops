@@ -1,5 +1,11 @@
 # Deferred Work
 
+## Deferred from: code review of 3-4-verify-e2e-and-retire-obsolete-provisioning-paths (2026-05-26)
+
+- **(MED)** `MIGRATION.md` — W1: No per-resource `terraform import` commands for operators with live legacy Terraform state in the retired trees. Story scoped to clean-state scenarios; state migration path is undocumented.
+- **(LOW)** `terraform/konnect/modules/application_auth_strategy/main.tf` — W2: `lifecycle { ignore_changes = [key_auth, openid_connect] }` provides no escape mechanism for intentional future config updates without temporarily removing the block. Terraform limitation; idempotency fix accepted as-is.
+- **(LOW)** Repository-wide — W3: No documented rollback procedure for the 165-file legacy retirement (3 workflows, Terraform tree, action, YAML dirs). Significant scope change with no undo path; belongs in an operations runbook.
+
 ## Deferred from: code review of 3-3-create-single-provision-konnect-resources-workflow (2026-05-22)
 
 - **(LOW)** `.github/workflows/provision-konnect-resources.yaml:54` — `terraform_version: "latest"` is non-reproducible. A Terraform major version bump could silently change plan behavior between runs. Pre-existing project convention (`hashicorp/setup-terraform@v3` with `terraform_version: latest`); pin to a specific version in a future hardening pass.

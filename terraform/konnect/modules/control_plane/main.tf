@@ -66,6 +66,12 @@ resource "konnect_gateway_control_plane" "this" {
   labels = merge(var.labels, {
     generated_by = "terraform"
   })
+
+  # cluster_type and cloud_gateway are ForceNew immutable attributes. Ignore them
+  # after initial creation to prevent accidental destroy-recreate on import drift.
+  lifecycle {
+    ignore_changes = [cluster_type, cloud_gateway]
+  }
 }
 
 output "control_plane" {

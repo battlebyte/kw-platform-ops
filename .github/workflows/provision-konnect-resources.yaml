@@ -57,6 +57,9 @@ jobs:
       # Org — selects konnect/orgs/<org>/*.yaml and sets state key
       TF_VAR_org: ${{ inputs.org || 'konnect' }}
 
+      # Sensitive variables map (JSON) — key names are the *_ref values in konnect/orgs/<org>/*.yaml (e.g. idp_client_secret, portal_oidc_client_secret)
+      TF_VAR_sensitive_vars: ${{ secrets.TF_SENSITIVE_VARS || '{}' }}
+
     steps:
       - name: Validate inputs
         if: github.event_name == 'workflow_dispatch'
@@ -82,8 +85,27 @@ jobs:
 
       - name: Install AWS CLI
         id: install-aws-cli
-        if: env.TF_BACKEND_CONFIG != 'config.minio.tfbackend'
-        uses: unfor19/install-aws-cli-action@v1
+        shell: bash
+        run: |
+          if command -v aws &>/dev/null; then
+            echo "AWS CLI already installed: $(aws --version)"
+          else
+            # Detect runner architecture (supports x86_64 and arm64/aarch64 runners)
+            ARCH=$(uname -m)
+            [[ "${ARCH}" == "aarch64" ]] && ARCH="aarch64" || ARCH="x86_64"
+            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip"     -o /tmp/awscliv2.zip
+            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip.sig" -o /tmp/awscliv2.zip.sig
+            curl -fsSL "https://awscli.amazonaws.com/awscli-public-key-v2.pub"         -o /tmp/awscli-key.pub
+            # Verify PGP signature against AWS public key before execution
+            GNUPGHOME=$(mktemp -d)
+            gpg --batch --homedir "${GNUPGHOME}" --import /tmp/awscli-key.pub
+            gpg --batch --homedir "${GNUPGHOME}" --verify /tmp/awscliv2.zip.sig /tmp/awscliv2.zip
+            rm -rf "${GNUPGHOME}"
+            unzip -q /tmp/awscliv2.zip -d /tmp/awscliv2-extract
+            /tmp/awscliv2-extract/aws/install --install-dir /tmp/aws-cli --bin-dir /tmp/aws-bin
+            echo "/tmp/aws-bin" >> "$GITHUB_PATH"
+          fi
+          aws --version || /tmp/aws-bin/aws --version
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

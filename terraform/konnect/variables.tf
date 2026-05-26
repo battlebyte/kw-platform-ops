@@ -93,7 +93,8 @@ variable "system_account_vault_mount" {
 }
 
 variable "default_system_account_token_expires_at" {
-  description = "Stable default expiry timestamp for generated system-account access tokens."
+  # NOTE: Konnect API requires this date to be within one year of `terraform apply`. Update annually.
+  description = "Stable default expiry timestamp for generated system-account access tokens. Must be within one year of the apply date per the Konnect API."
   type        = string
-  default     = "2030-01-01T00:00:00Z"
+  default     = "2027-05-25T00:00:00Z"
 }

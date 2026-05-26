@@ -3,7 +3,7 @@ identity_provider:
   enabled: true
   login_path: myorg
   idp_type: oidc
-  oidc_issuer_url: https://konghq.okta.com/
+  oidc_issuer_url: https://konghq.okta.com
   oidc_client_id: my-client-id
   oidc_client_secret_ref: idp_client_secret
   oidc_scopes:
@@ -19,7 +19,7 @@ identity_provider:
 # team_id is the Konnect team UUID (retrieve via `terraform output` or the Konnect UI).
 team_group_mappings:
   - group: platform-admins
-    team_id: "00000000-0000-0000-0000-000000000001"
+    team_id: "8adeebcb-14a3-4b2c-8839-c0f3fa54904e"
 
   - group: flight-ops
-    team_id: "00000000-0000-0000-0000-000000000002"
+    team_id: "9ab54e88-cf01-430b-a106-f6aab93ec20c"

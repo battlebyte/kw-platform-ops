@@ -192,3 +192,119 @@ If step 6 surfaces an unforeseen post-merge issue and the operator needs to reve
 3. **Marker-file note.** The `<tree>/.terraform/migrations-applied` file retains the `001-konnect-3-15-rename.sh` line. **This is deliberately harmless**: the 001 script body is a no-op for the 3.1.0 ↔ 3.15.0 hop (per audit), so the line records "the driver visited this script" and not "state was mutated." Operators concerned about marker hygiene can `rm <tree>/.terraform/migrations-applied`; the file is gitignored and will be regenerated on the next `make migrate-state`. **No `terraform state mv` reversal is required** because no state was mutated by step 5 in the forward direction.
 
 4. **Caveat — operator-introduced HCL on top of 3.15.0.** If the rollback is needed because the operator's fork added HCL that uses a 3.15.0-only attribute on top of the bump, that HCL must **also** be reverted; otherwise the 3.1.0 provider will fail schema validation and `init` will error out. Audit the operator's fork-local changes between the bump SHAs and HEAD before assuming the rollback recipe alone is sufficient.
+
+## Migration 3 — Legacy provisioning workflows → Unified provisioning engine
+
+The three fragmented Konnect provisioning workflows (`onboard-konnect-teams.yaml`,
+`provision-auth-identity.yaml`, `provision-konnect-team-resources.yaml`) and
+their backing Terraform trees (`terraform/konnect-teams/`,
+`.github/actions/provision-konnect-resources/terraform/`) were retired in
+Epic 3 (Stories 3.1–3.4) and replaced by the unified
+`provision-konnect-resources.yaml` workflow reading from
+`terraform/konnect/` and `konnect/orgs/<org>/*.yaml`.
+
+**Affected:**
+
+- Retired workflows: `.github/workflows/onboard-konnect-teams.yaml`,
+  `.github/workflows/provision-auth-identity.yaml`,
+  `.github/workflows/provision-konnect-team-resources.yaml`
+- Retired Terraform tree: `terraform/konnect-teams/`
+- Retired YAML sources: `teams/*.yaml`, `konnect/auth-identity/`,
+  `konnect/teams/`, `konnect/developer-portal/`, `konnect/dashboards/`
+- Retired action: `.github/actions/provision-konnect-resources/`
+- Retired scripts: `scripts/validate-team-config.sh`, `scripts/run-migrations.sh`
+- Retired tests: `test/provisioning/`
+
+**Before:**
+
+Three separate `workflow_dispatch` runs for teams, auth-identity, and per-team
+resources; each backed by its own Terraform tree and per-team S3 buckets:
+
+```bash
+# Three separate dispatches required:
+gh workflow run onboard-konnect-teams.yaml
+gh workflow run provision-auth-identity.yaml
+gh workflow run provision-konnect-team-resources.yaml --field team=flight-operations
+```
+
+Resource YAML lived in `teams/*.yaml`, `konnect/auth-identity/`, `konnect/teams/`,
+`konnect/developer-portal/`, and `konnect/dashboards/` — spread across five
+directories with different schemas.
+
+**After:**
+
+One `provision-konnect-resources.yaml` workflow dispatch:
+
+```yaml
+# .github/workflows/provision-konnect-resources.yaml
+on:
+  workflow_dispatch:
+    inputs:
+      org: { default: 'konnect', type: string }
+      action: { default: 'plan', type: choice, options: [plan, apply, destroy] }
+```
+
+```bash
+# Single dispatch covering all Konnect resources:
+gh workflow run provision-konnect-resources.yaml \
+  --field org=konnect \
+  --field action=apply
+```
+
+All Konnect resource declarations live under `konnect/orgs/<org>/*.yaml`.
+State is managed under a single bucket key: `konnect/orgs/<org>/terraform.tfstate`.
+
+**Remediation:**
+
+1. **Update fork CI pipelines** that called the three retired workflows to instead
+   dispatch `.github/workflows/provision-konnect-resources.yaml`:
+   ```yaml
+   # Replace any reference to the three legacy workflows with:
+   uses: ./.github/workflows/provision-konnect-resources.yaml
+   with:
+     org: konnect
+     action: apply
+   ```
+
+2. **Migrate resource YAML** from legacy source directories into `konnect/orgs/<org>/`
+   following the top-level key schema in `konnect/orgs/konnect/*.yaml` as the reference.
+   Key mapping:
+   - `teams/<name>.yaml` → entries in `konnect/orgs/<org>/teams.yaml`
+   - `konnect/auth-identity/` → `konnect/orgs/<org>/authentication-settings.yaml` + `identity-provider.yaml`
+   - `konnect/teams/<name>/resources.yaml` → control-plane and role entries in `konnect/orgs/<org>/control-planes.yaml`
+   - `konnect/developer-portal/config.yaml` → `konnect/orgs/<org>/portals.yaml`
+   - `konnect/dashboards/` → `konnect/orgs/<org>/dashboards.yaml`
+
+3. **Initialize the unified Terraform root** against the new backend key:
+   ```bash
+   cd terraform/konnect
+   terraform init -reconfigure \
+     -backend-config=config.minio.tfbackend \
+     -backend-config="key=konnect/orgs/konnect/terraform.tfstate"
+   ```
+   No `terraform state mv` is required when starting from a clean state. If
+   migrating existing state from the legacy trees, import resources individually
+   via `terraform import` — the unified module uses the same provider resource
+   types (`konnect_team`, `konnect_control_plane`, etc.) so attribute mappings are
+   straightforward.
+
+4. **Remove legacy `migrate-state` references.** The `Makefile` `migrate-state`
+   target and `scripts/run-migrations.sh` have been retired alongside the legacy trees.
+   Scan your fork for any remaining references and remove them:
+   ```bash
+   # Find remaining references in CI workflows and scripts
+   grep -r "migrate-state\|run-migrations" .github/ scripts/ Makefile 2>/dev/null
+   ```
+
+   Delete or comment out any lines that invoke:
+   - `make migrate-state` — the Makefile target no longer exists; calling it will error.
+   - `bash scripts/run-migrations.sh` (or `./scripts/run-migrations.sh`) — the file is deleted.
+   - Any workflow step with `run: make migrate-state` or a reference to `scripts/run-migrations.sh`.
+
+   **Before** (example fork CI step to remove):
+   ```yaml
+   - name: Run state migrations
+     run: make migrate-state
+   ```
+   **After:** delete the step entirely. The unified Terraform root manages its own state
+   from first `init`; there are no pre-apply migration scripts.

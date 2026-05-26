@@ -61,6 +61,12 @@ resource "konnect_system_account_access_token" "this" {
   name       = "${konnect_system_account.this.name}-token"
   expires_at = var.expires_at
   account_id = konnect_system_account.this.id
+
+  # expires_at is ForceNew. Ignore drift so expiry changes don't silently rotate
+  # tokens — rotation should be an explicit action (destroy + re-apply).
+  lifecycle {
+    ignore_changes = [expires_at]
+  }
 }
 
 output "system_account_token" {
