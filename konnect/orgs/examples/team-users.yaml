@@ -1,0 +1,21 @@
+################################################################################
+# TEAM USERS
+# Add existing Konnect org users to teams by their user ID (UUID).
+# User IDs can be found in the Konnect UI under Organization → Users,
+# or via the Konnect API:  GET /v3/users
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/team_user
+################################################################################
+
+team_users:
+  - team_name: Platform Engineering
+    # Replace with the real Konnect user UUID
+    user_id: "00000000-0000-0000-0000-user00000001"
+
+  - team_name: Platform Engineering
+    user_id: "00000000-0000-0000-0000-user00000002"
+
+  - team_name: SRE Team
+    user_id: "00000000-0000-0000-0000-user00000003"
+
+  - team_name: API Gateway Admins
+    user_id: "00000000-0000-0000-0000-user00000004"

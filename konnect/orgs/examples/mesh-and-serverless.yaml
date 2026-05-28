@@ -1,0 +1,61 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Mesh Control Planes
+# konnect_mesh_control_plane — Kong Mesh / Kuma-based service mesh CPs.
+# These are independent from Gateway control planes and are managed by KM/Kuma.
+# ─────────────────────────────────────────────────────────────────────────────
+mesh_control_planes:
+
+  - name: flight-ops-mesh
+    description: Service mesh control plane for the flight-ops workloads
+    labels:
+      team: flight-ops
+      env:  production
+
+  - name: dev-mesh
+    description: Development service mesh — feature flags enabled for dev teams
+    labels:
+      env: development
+    features:
+      - type: MeshCreation
+        mesh_creation:
+          enabled: true
+      - type: HostnameGeneratorCreation
+        hostname_generator_creation:
+          enabled: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Portal Audit Log Webhooks
+# konnect_portal_audit_log_webhook — route developer portal audit events to an
+# existing konnect_audit_log_destination (created in audit-log.yaml).
+# ─────────────────────────────────────────────────────────────────────────────
+portal_audit_log_webhooks:
+
+  - portal_name: flight-ops-portal                 # references portals.yaml entry
+    audit_log_destination_name: splunk-hec          # references audit-log.yaml entry
+    enabled: true
+
+  - portal_name: partner-portal                    # references portals.yaml entry
+    audit_log_destination_name: datadog-logs        # references audit-log.yaml entry
+    enabled: false                                  # disabled until portal goes live
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Serverless Cloud Gateways
+# konnect_serverless_cloud_gateway — managed data-plane (no infra provisioning).
+# IMPORTANT: cluster_cert and cluster_cert_key are immutable after creation.
+#            Use cluster_cert_key_ref to read the private key from Vault/secrets.
+# ─────────────────────────────────────────────────────────────────────────────
+serverless_cloud_gateways:
+
+  - control_plane_name:   flight-ops-eu     # resolved to CP UUID at plan time
+    control_plane_prefix: kongair-eu        # short routing prefix (distinct from the name)
+    control_plane_region: eu
+    cluster_cert: |
+      -----BEGIN CERTIFICATE-----
+      REPLACE_WITH_REAL_CLUSTER_CERT_PEM
+      -----END CERTIFICATE-----
+    # Reference the private key from a Vault secret rather than hard-coding it.
+    # The Terraform module looks up var.sensitive_vars[cluster_cert_key_ref].
+    cluster_cert_key_ref: serverless_cluster_cert_key
+    labels:
+      env:  production
+      team: platform

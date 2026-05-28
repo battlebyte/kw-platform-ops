@@ -183,9 +183,12 @@ locals {
     for api in local.apis : "${api.name}:${lookup(api, "version", "")}" => api
   }
 
+  # api_ids_by_name: keyed by both "name:version" and plain "name" (last version wins for plain key).
+  # Plain-name keys allow api_specifications, api_implementations, api_documents, etc.
+  # to reference an API by name without needing to know the version string.
   api_ids_by_name = merge(
     { for key, api in local.apis_by_key : key => module.apis[key].id },
-    { for key, api in local.apis_by_key : api.name => module.apis[key].id if lookup(api, "version", "") == "" }
+    { for key, api in local.apis_by_key : api.name => module.apis[key].id }
   )
 
   inline_api_publications = flatten([
@@ -220,6 +223,14 @@ locals {
     lookup(local.org_config, "identity_provider", null) == null ? [] : [local.org_config.identity_provider]
   )
   identity_provider_team_group_mappings = lookup(local.org_config, "identity_provider_team_group_mappings", lookup(local.org_config, "team_group_mappings", []))
+  identity_provider_team_group_mappings_missing_team_ref = [
+    for mapping in local.identity_provider_team_group_mappings : mapping
+    if lookup(mapping, "team_name", null) == null && lookup(mapping, "team_id", null) == null
+  ]
+  identity_provider_team_group_mappings_unknown_team_names = [
+    for mapping in local.identity_provider_team_group_mappings : lookup(mapping, "team_name", null)
+    if lookup(mapping, "team_name", null) != null && !contains(keys(local.teams_by_name), lookup(mapping, "team_name", null))
+  ]
   identity_provider_secret_violations = [
     for provider in local.identity_providers : lookup(provider, "name", lookup(provider, "idp_type", "identity-provider"))
     if can(provider.oidc_client_secret)
@@ -242,6 +253,44 @@ locals {
     "API Products"   = local.api_ids_by_name
     "Portals"        = { for name, portal in module.developer_portals : name => portal.id }
   }
+
+  # ---------------------------------------------------------------------------
+  # Extended entity locals (wired to modules below)
+  # ---------------------------------------------------------------------------
+
+  api_specifications  = lookup(local.org_config, "api_specifications", [])
+  api_implementations = lookup(local.org_config, "api_implementations", [])
+
+  system_account_teams = lookup(local.org_config, "system_account_teams", [])
+  team_users_list      = lookup(local.org_config, "team_users", [])
+
+  audit_log_config = lookup(local.org_config, "audit_log", null) == null ? [] : [local.org_config.audit_log]
+  # Only include destinations whose authorization secret is available in sensitive_vars.
+  # Destinations with a missing or empty authorization are silently skipped (e.g. local act runs).
+  # nonsensitive() is safe: list items contain only non-secret YAML config (name, endpoint, etc.),
+  # not the actual secret values; sensitive_vars is used only as a boolean predicate here.
+  audit_log_destinations = nonsensitive([
+    for dest in lookup(local.org_config, "audit_log_destinations", []) :
+    dest if lookup(var.sensitive_vars, lookup(dest, "authorization_ref", "__unset__"), "") != ""
+  ])
+
+  realms                    = lookup(local.org_config, "realms", [])
+  centralized_consumers     = lookup(local.org_config, "centralized_consumers", [])
+  centralized_consumer_keys = lookup(local.org_config, "centralized_consumer_keys", [])
+
+  cloud_gateway_networks            = lookup(local.org_config, "cloud_gateway_networks", [])
+  cloud_gateway_configurations_list = lookup(local.org_config, "cloud_gateway_configurations", [])
+  cloud_gateway_custom_domains_list = lookup(local.org_config, "cloud_gateway_custom_domains", [])
+  cloud_gateway_transit_gateways    = lookup(local.org_config, "cloud_gateway_transit_gateways", [])
+  cloud_gateway_private_dns_list    = lookup(local.org_config, "cloud_gateway_private_dns", [])
+
+  integration_instances                 = lookup(local.org_config, "integration_instances", [])
+  integration_instance_auth_configs     = lookup(local.org_config, "integration_instance_auth_configs", [])
+  integration_instance_auth_credentials = lookup(local.org_config, "integration_instance_auth_credentials", [])
+
+  mesh_control_planes       = lookup(local.org_config, "mesh_control_planes", [])
+  portal_audit_log_webhooks = lookup(local.org_config, "portal_audit_log_webhooks", [])
+  serverless_cloud_gateways = lookup(local.org_config, "serverless_cloud_gateways", [])
 }
 
 resource "terraform_data" "validate_org_config" {
@@ -271,6 +320,16 @@ resource "terraform_data" "validate_org_config" {
     precondition {
       condition     = length(local.portal_customization_unsupported_keys) == 0
       error_message = "Unsupported portal_customizations keys found: ${join(", ", local.portal_customization_unsupported_keys)}."
+    }
+
+    precondition {
+      condition     = length(local.identity_provider_team_group_mappings_missing_team_ref) == 0
+      error_message = "Each identity provider team-group mapping must define either team_name or team_id."
+    }
+
+    precondition {
+      condition     = length(local.identity_provider_team_group_mappings_unknown_team_names) == 0
+      error_message = "Unknown team_name in identity provider team-group mappings: ${join(", ", local.identity_provider_team_group_mappings_unknown_team_names)}."
     }
   }
 }
@@ -306,10 +365,10 @@ resource "konnect_gateway_control_plane_membership" "this" {
     for membership in local.control_plane_memberships : membership.key => membership
   }
 
-  id = module.control_planes[each.value.group_name].control_plane.id
+  id = module.control_planes[each.value.cp_name].control_plane.id
 
   members = [{
-    id = module.control_planes[each.value.cp_name].control_plane.id
+    id = module.control_planes[each.value.group_name].control_plane.id
   }]
 }
 
@@ -482,9 +541,10 @@ module "portal_custom_domains" {
 
   for_each = { for domain in local.portal_domains : "${domain.portal_name}:${domain.hostname}" => domain }
 
-  portal_id = module.developer_portals[each.value.portal_name].id
-  hostname  = each.value.hostname
-  enabled   = lookup(each.value, "enabled", false)
+  portal_id                      = module.developer_portals[each.value.portal_name].id
+  hostname                       = each.value.hostname
+  enabled                        = lookup(each.value, "enabled", false)
+  ssl_domain_verification_method = lookup(each.value, "ssl_domain_verification_method", "dns")
 }
 
 module "portal_teams" {
@@ -593,16 +653,25 @@ module "portal_favicons" {
 module "portal_product_versions" {
   source = "./modules/portal_product_version"
 
-  for_each = { for version in local.product_versions : "${version.portal_name}:${version.product_version_id}" => version }
+  for_each = {
+    for version in local.product_versions :
+    "${version.portal_name}:${lookup(version, "api_name", "")}:${lookup(version, "version", lookup(version, "product_version_id", ""))}" => version
+  }
 
-  portal_id                        = module.developer_portals[each.value.portal_name].id
-  product_version_id               = each.value.product_version_id
+  portal_id = module.developer_portals[each.value.portal_name].id
+  product_version_id = (
+    lookup(each.value, "api_name", null) != null
+    ? module.api_versions["${each.value.api_name}:${lookup(each.value, "version", "")}"].id
+    : each.value.product_version_id
+  )
   publish_status                   = each.value.publish_status
   application_registration_enabled = each.value.application_registration_enabled
   auto_approve_registration        = each.value.auto_approve_registration
   deprecated                       = each.value.deprecated
   auth_strategy_ids                = lookup(each.value, "auth_strategy_ids", [])
   notify_developers                = lookup(each.value, "notify_developers", null)
+
+  depends_on = [module.api_versions]
 }
 
 module "dashboards" {
@@ -649,7 +718,7 @@ module "api_versions" {
     "${coalesce(lookup(version, "api_id", null), lookup(version, "api_name", null))}:${lookup(version, "version", "")}" => version
   }
 
-  api_id       = try(module.apis[lookup(each.value, "api_key", "${each.value.api_name}:")].id, each.value.api_id)
+  api_id       = try(local.api_ids_by_name[lookup(each.value, "api_key", each.value.api_name)], each.value.api_id)
   api_version  = lookup(each.value, "version", null)
   spec_content = try(file("${var.gh_workspace_path}/${each.value.spec_content.file}"), each.value.spec_content.content)
 }
@@ -659,7 +728,7 @@ module "api_documents" {
 
   for_each = { for doc in local.api_documents : "${doc.api_name}:${lookup(doc, "version", "")}:${doc.slug}" => doc }
 
-  api_id             = try(module.apis[lookup(each.value, "api_key", "${each.value.api_name}:${lookup(each.value, "version", "")}")].id, module.apis["${each.value.api_name}:"].id)
+  api_id             = try(local.api_ids_by_name[lookup(each.value, "api_key", "${each.value.api_name}:${lookup(each.value, "version", "")}")], local.api_ids_by_name[each.value.api_name])
   content            = try(file("${var.gh_workspace_path}/${each.value.content.file}"), each.value.content)
   parent_document_id = lookup(each.value, "parent_document_id", null)
   slug               = each.value.slug
@@ -672,9 +741,9 @@ module "api_publications" {
 
   for_each = local.api_publications_by_key
 
-  api_id                     = try(module.apis[lookup(each.value, "api_key", "${each.value.api_name}:${lookup(each.value, "version", "")}")].id, module.apis["${each.value.api_name}:"].id)
+  api_id                     = try(local.api_ids_by_name[lookup(each.value, "api_key", "${each.value.api_name}:${lookup(each.value, "version", "")}")], local.api_ids_by_name[each.value.api_name])
   portal_id                  = try(module.developer_portals[each.value.portal_name].id, lookup(each.value, "portal_id", null))
-  auth_strategy_ids          = lookup(each.value, "auth_strategy_ids", null)
+  auth_strategy_ids          = try(length(lookup(each.value, "auth_strategy_ids", [])) > 0 ? lookup(each.value, "auth_strategy_ids", null) : null, null)
   auto_approve_registrations = lookup(each.value, "auto_approve_registrations", null)
   visibility                 = lookup(each.value, "visibility", "private")
 }
@@ -725,9 +794,7 @@ module "identity_provider_team_group_mappings" {
   group = each.value.group
   identity_provider_id = (
     lookup(each.value, "identity_provider_name", null) != null
-    # P1: wrap with try() so a missing module key yields null rather than crashing
     ? try(module.identity_providers[lookup(each.value, "identity_provider_name", null)].id, null)
-    # P2: wrap coalesce() with try() so all-null paths return null rather than panicking
     : try(
       coalesce(
         lookup(each.value, "identity_provider_id", null),
@@ -736,7 +803,6 @@ module "identity_provider_team_group_mappings" {
       null
     )
   )
-  # P3: use null sentinel (not "") so try() can catch a missing team key cleanly
   team_id = (
     lookup(each.value, "team_name", null) != null
     ? try(module.teams[each.value.team_name].id, null)
@@ -744,4 +810,363 @@ module "identity_provider_team_group_mappings" {
   )
 
   depends_on = [module.identity_providers, module.teams]
+}
+
+################################################################################
+# STEP 7: EXTENDED ENTITIES
+################################################################################
+
+module "api_specifications" {
+  source = "./modules/api_specification"
+
+  for_each = {
+    for spec in local.api_specifications :
+    lookup(spec, "api_name", lookup(spec, "api_id", "")) => spec
+  }
+
+  api_id  = try(local.api_ids_by_name[each.value.api_name], each.value.api_id)
+  content = each.value.content
+  type    = lookup(each.value, "type", null)
+
+  depends_on = [module.apis]
+}
+
+module "api_implementations" {
+  source = "./modules/api_implementation"
+
+  for_each = {
+    for impl in local.api_implementations :
+    lookup(impl, "api_name", lookup(impl, "api_id", "")) => impl
+  }
+
+  api_id = try(local.api_ids_by_name[each.value.api_name], each.value.api_id)
+  service = {
+    control_plane_id = (
+      lookup(each.value.service, "control_plane_name", null) != null
+      ? module.control_planes[each.value.service.control_plane_name].control_plane.id
+      : each.value.service.control_plane_id
+    )
+    id = each.value.service.id
+  }
+
+  depends_on = [module.apis, module.control_planes]
+}
+
+module "system_account_teams" {
+  source = "./modules/system_account_team"
+
+  for_each = {
+    for st in local.system_account_teams :
+    "${st.account_name}:${st.team_name}" => st
+  }
+
+  account_id = module.system_account[each.value.account_name].id
+  team_id    = module.teams[each.value.team_name].id
+
+  depends_on = [module.system_account, module.teams]
+}
+
+module "team_users" {
+  source = "./modules/team_user"
+
+  for_each = {
+    for tu in local.team_users_list :
+    "${tu.team_name}:${tu.user_id}" => tu
+  }
+
+  team_id = module.teams[each.value.team_name].id
+  user_id = each.value.user_id
+
+  depends_on = [module.teams]
+}
+
+module "audit_log" {
+  source = "./modules/audit_log"
+
+  # Only provision when the authorization secret is available in sensitive_vars.
+  # Skips gracefully in local act runs where TF_SENSITIVE_VARS is empty.
+  # nonsensitive() is safe: we expose only a boolean (present/absent), not the secret value.
+  for_each = (
+    length(local.audit_log_config) > 0 &&
+    nonsensitive(lookup(var.sensitive_vars, lookup(try(local.audit_log_config[0], {}), "authorization_ref", "audit_log_authorization"), "")) != ""
+  ) ? { singleton = local.audit_log_config[0] } : {}
+
+  endpoint              = lookup(each.value, "endpoint", null)
+  authorization         = lookup(var.sensitive_vars, lookup(each.value, "authorization_ref", "audit_log_authorization"), null)
+  enabled               = lookup(each.value, "enabled", null)
+  log_format            = lookup(each.value, "log_format", null)
+  skip_ssl_verification = lookup(each.value, "skip_ssl_verification", null)
+}
+
+module "audit_log_destinations" {
+  source = "./modules/audit_log_destination"
+
+  for_each = { for dest in local.audit_log_destinations : dest.name => dest }
+
+  name                  = each.value.name
+  endpoint              = each.value.endpoint
+  authorization         = lookup(var.sensitive_vars, lookup(each.value, "authorization_ref", "audit_log_authorization"), null)
+  log_format            = lookup(each.value, "log_format", null)
+  skip_ssl_verification = lookup(each.value, "skip_ssl_verification", null)
+}
+
+module "realms" {
+  source = "./modules/realm"
+
+  for_each = { for r in local.realms : r.name => r }
+
+  name                     = each.value.name
+  allow_all_control_planes = lookup(each.value, "allow_all_control_planes", null)
+  allowed_control_planes = [
+    for name in lookup(each.value, "allowed_control_plane_names", lookup(each.value, "allowed_control_planes", [])) :
+    can(module.control_planes[name].control_plane.id) ? module.control_planes[name].control_plane.id : name
+  ]
+  consumer_groups = lookup(each.value, "consumer_groups", [])
+  ttl             = lookup(each.value, "ttl", null)
+  negative_ttl    = lookup(each.value, "negative_ttl", null)
+  force_destroy   = lookup(each.value, "force_destroy", null)
+}
+
+module "centralized_consumers" {
+  source = "./modules/centralized_consumer"
+
+  for_each = {
+    for c in local.centralized_consumers :
+    "${coalesce(lookup(c, "realm_name", null), lookup(c, "realm_id", ""))}:${c.username}" => c
+  }
+
+  realm_id = (
+    lookup(each.value, "realm_name", null) != null
+    ? module.realms[each.value.realm_name].id
+    : each.value.realm_id
+  )
+  username        = each.value.username
+  custom_id       = lookup(each.value, "custom_id", null)
+  consumer_type   = lookup(each.value, "consumer_type", null)
+  consumer_groups = lookup(each.value, "consumer_groups", [])
+  tags            = lookup(each.value, "tags", [])
+
+  depends_on = [module.realms]
+}
+
+module "centralized_consumer_keys" {
+  source = "./modules/centralized_consumer_key"
+
+  for_each = {
+    for k in local.centralized_consumer_keys :
+    "${coalesce(lookup(k, "realm_name", null), lookup(k, "realm_id", ""))}:${coalesce(lookup(k, "consumer_username", null), lookup(k, "consumer_id", ""))}" => k
+  }
+
+  realm_id = (
+    lookup(each.value, "realm_name", null) != null
+    ? module.realms[each.value.realm_name].id
+    : each.value.realm_id
+  )
+  consumer_id = (
+    lookup(each.value, "consumer_username", null) != null
+    ? module.centralized_consumers["${coalesce(lookup(each.value, "realm_name", null), each.value.realm_id)}:${each.value.consumer_username}"].id
+    : each.value.consumer_id
+  )
+  key_type = lookup(each.value, "key_type", null)
+  tags     = lookup(each.value, "tags", [])
+
+  depends_on = [module.centralized_consumers]
+}
+
+module "cloud_gateway_networks" {
+  source = "./modules/cloud_gateway_network"
+
+  for_each = { for n in local.cloud_gateway_networks : n.name => n }
+
+  name                              = each.value.name
+  region                            = each.value.region
+  cidr_block                        = each.value.cidr_block
+  availability_zones                = each.value.availability_zones
+  cloud_gateway_provider_account_id = each.value.cloud_gateway_provider_account_id
+}
+
+module "cloud_gateway_configurations" {
+  source = "./modules/cloud_gateway_configuration"
+
+  for_each = {
+    for c in local.cloud_gateway_configurations_list :
+    "${coalesce(lookup(c, "control_plane_name", null), lookup(c, "control_plane_id", ""))}:${c.control_plane_geo}" => c
+  }
+
+  control_plane_id = (
+    lookup(each.value, "control_plane_name", null) != null
+    ? module.control_planes[each.value.control_plane_name].control_plane.id
+    : each.value.control_plane_id
+  )
+  control_plane_geo = each.value.control_plane_geo
+  dataplane_groups = [
+    for dg in each.value.dataplane_groups : merge(
+      { for k, v in dg : k => v if k != "network_name" },
+      {
+        network_id = (
+          lookup(dg, "network_name", null) != null
+          ? module.cloud_gateway_networks[dg.network_name].id
+          : dg.network_id
+        )
+      }
+    )
+  ]
+  config_version = each.value.config_version
+
+  depends_on = [module.control_planes, module.cloud_gateway_networks]
+}
+
+module "cloud_gateway_custom_domains" {
+  source = "./modules/cloud_gateway_custom_domain"
+
+  for_each = {
+    for d in local.cloud_gateway_custom_domains_list :
+    "${coalesce(lookup(d, "control_plane_name", null), lookup(d, "control_plane_id", ""))}:${d.domain}" => d
+  }
+
+  control_plane_id = (
+    lookup(each.value, "control_plane_name", null) != null
+    ? module.control_planes[each.value.control_plane_name].control_plane.id
+    : each.value.control_plane_id
+  )
+  control_plane_geo = each.value.control_plane_geo
+  domain            = each.value.domain
+
+  depends_on = [module.control_planes]
+}
+
+module "cloud_gateway_transit_gateways" {
+  source = "./modules/cloud_gateway_transit_gateway"
+
+  for_each = {
+    for tg in local.cloud_gateway_transit_gateways :
+    coalesce(lookup(tg, "network_name", null), lookup(tg, "network_id", "")) => tg
+  }
+
+  network_id = (
+    lookup(each.value, "network_name", null) != null
+    ? module.cloud_gateway_networks[each.value.network_name].id
+    : each.value.network_id
+  )
+  aws_transit_gateway             = lookup(each.value, "aws_transit_gateway", null)
+  aws_vpc_peering_gateway         = lookup(each.value, "aws_vpc_peering_gateway", null)
+  azure_transit_gateway           = lookup(each.value, "azure_transit_gateway", null)
+  gcp_vpc_peering_transit_gateway = lookup(each.value, "gcp_vpc_peering_transit_gateway", null)
+
+  depends_on = [module.cloud_gateway_networks]
+}
+
+module "cloud_gateway_private_dns" {
+  source = "./modules/cloud_gateway_private_dns"
+
+  for_each = {
+    for dns in local.cloud_gateway_private_dns_list :
+    "${coalesce(lookup(dns, "network_name", null), lookup(dns, "network_id", ""))}:${lookup(dns, "name", "default")}" => dns
+  }
+
+  network_id = (
+    lookup(each.value, "network_name", null) != null
+    ? module.cloud_gateway_networks[each.value.network_name].id
+    : each.value.network_id
+  )
+  name                          = lookup(each.value, "name", null)
+  private_dns_attachment_config = lookup(each.value, "private_dns_attachment_config", null)
+
+  depends_on = [module.cloud_gateway_networks]
+}
+
+module "integration_instances" {
+  source = "./modules/integration_instance"
+
+  for_each = { for i in local.integration_instances : i.name => i }
+
+  name             = each.value.name
+  display_name     = each.value.display_name
+  integration_name = each.value.integration_name
+  description      = lookup(each.value, "description", null)
+  config           = each.value.config
+}
+
+module "integration_instance_auth_configs" {
+  source = "./modules/integration_instance_auth_config"
+
+  for_each = {
+    for c in local.integration_instance_auth_configs :
+    c.integration_instance_name => c
+  }
+
+  integration_instance_id = module.integration_instances[each.value.integration_instance_name].id
+  oauth_config            = lookup(each.value, "oauth_config", null)
+
+  depends_on = [module.integration_instances]
+}
+
+module "integration_instance_auth_credentials" {
+  source = "./modules/integration_instance_auth_credential"
+
+  for_each = {
+    for c in local.integration_instance_auth_credentials :
+    c.integration_instance_name => c
+  }
+
+  integration_instance_id = module.integration_instances[each.value.integration_instance_name].id
+  multi_key_auth          = lookup(each.value, "multi_key_auth", null)
+
+  depends_on = [module.integration_instances]
+}
+
+module "mesh_control_planes" {
+  source = "./modules/mesh_control_plane"
+
+  for_each = { for m in local.mesh_control_planes : m.name => m }
+
+  name        = each.value.name
+  description = lookup(each.value, "description", null)
+  labels      = lookup(each.value, "labels", {})
+  features    = lookup(each.value, "features", [])
+}
+
+module "portal_audit_log_webhooks" {
+  source = "./modules/portal_audit_log_webhook"
+
+  for_each = {
+    for w in local.portal_audit_log_webhooks :
+    w.portal_name => w
+  }
+
+  portal_id = (
+    lookup(each.value, "portal_name", null) != null
+    ? try(module.developer_portals[each.value.portal_name].id, null)
+    : each.value.portal_id
+  )
+  audit_log_destination_id = (
+    lookup(each.value, "audit_log_destination_name", null) != null
+    ? try(module.audit_log_destinations[each.value.audit_log_destination_name].id, null)
+    : lookup(each.value, "audit_log_destination_id", null)
+  )
+  enabled = lookup(each.value, "enabled", null)
+
+  depends_on = [module.developer_portals, module.audit_log_destinations]
+}
+
+module "serverless_cloud_gateways" {
+  source = "./modules/serverless_cloud_gateway"
+
+  for_each = {
+    for s in local.serverless_cloud_gateways :
+    coalesce(lookup(s, "control_plane_name", null), lookup(s, "control_plane_id", "")) => s
+  }
+
+  cluster_cert     = each.value.cluster_cert
+  cluster_cert_key = lookup(var.sensitive_vars, lookup(each.value, "cluster_cert_key_ref", ""), lookup(each.value, "cluster_cert_key", null))
+  control_plane_id = (
+    lookup(each.value, "control_plane_name", null) != null
+    ? module.control_planes[each.value.control_plane_name].control_plane.id
+    : each.value.control_plane_id
+  )
+  control_plane_prefix = each.value.control_plane_prefix
+  control_plane_region = each.value.control_plane_region
+  labels               = lookup(each.value, "labels", {})
+
+  depends_on = [module.control_planes]
 }

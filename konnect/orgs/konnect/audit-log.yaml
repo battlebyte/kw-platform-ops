@@ -1,0 +1,32 @@
+################################################################################
+# AUDIT LOG (org-level singleton webhook)
+# Streams org audit events to an external HTTP endpoint.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/audit_log
+################################################################################
+
+audit_log:
+  endpoint: "https://siem.example.com/konnect/audit"
+  # authorization: stored in sensitive_vars["audit_log_authorization"]
+  # Use the key name from sensitive_vars map; injected at runtime via Vault.
+  enabled: true
+  log_format: json
+  skip_ssl_verification: false
+
+################################################################################
+# AUDIT LOG DESTINATIONS
+# Named destinations for fan-out audit log delivery (multiple sinks).
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/audit_log_destination
+################################################################################
+
+audit_log_destinations:
+  - name: splunk-hec
+    endpoint: "https://splunk.example.com:8088/services/collector/event"
+    log_format: cef
+    skip_ssl_verification: false
+    authorization_ref: splunk_hec_authorization
+
+  - name: datadog-logs
+    endpoint: "https://http-intake.logs.datadoghq.eu/api/v2/logs"
+    log_format: json
+    skip_ssl_verification: false
+    authorization_ref: datadog_api_key

@@ -19,3 +19,9 @@ variable "ssl_type" {
   type        = string
   default     = "managed"
 }
+
+variable "ssl_domain_verification_method" {
+  description = "Domain verification method for managed SSL: 'dns' or 'http'"
+  type        = string
+  default     = "dns"
+}

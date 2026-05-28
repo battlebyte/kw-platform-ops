@@ -119,3 +119,77 @@ portal_snippets:
       ```
     status: published
     visibility: public
+
+################################################################################
+# PORTAL AUTH
+# konnect_portal_auth uses deprecated v2 fields not supported by v3 API Hub
+# portals. Configure portal authentication directly in the Konnect UI, or use
+# the portal's authentication_enabled flag on the portal resource itself.
+################################################################################
+
+portal_auths: []
+
+################################################################################
+# PORTAL CUSTOM DOMAINS
+# Attach a custom hostname to the developer portal.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/portal_custom_domain
+# NOTE: requires a real resolvable hostname and valid SSL certificates.
+# Not applicable in local act runs with placeholder domains.
+################################################################################
+
+portal_custom_domains: []
+
+################################################################################
+# PORTAL TEAMS
+# Teams scoped to a portal (control who can manage and view the portal).
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/portal_team
+################################################################################
+
+portal_teams:
+  - portal_name: kongair-api-dev-portal
+    name: Portal Admins
+
+  - portal_name: kongair-api-dev-portal
+    name: API Publishers
+
+################################################################################
+# PORTAL APPEARANCES
+# konnect_portal_appearance uses PATCH /v2/portals/.../appearance which returns
+# 404 for v3 API Hub portals. Configure branding directly in the Konnect UI.
+################################################################################
+
+portal_appearances: []
+
+################################################################################
+# PORTAL LOGOS
+# Upload a logo image (base64-encoded data URL) for the portal header.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/portal_logo
+################################################################################
+
+portal_logos:
+  - portal_name: kongair-api-dev-portal
+    # A minimal 1×1 transparent PNG as a placeholder — replace with real logo.
+    data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
+################################################################################
+# PORTAL FAVICONS
+# Upload a favicon (base64-encoded data URL) for the portal.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/portal_favicon
+################################################################################
+
+portal_favicons:
+  - portal_name: kongair-api-dev-portal
+    # A minimal 1×1 transparent PNG as a placeholder — replace with real favicon.
+    data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
+################################################################################
+# PORTAL PRODUCT VERSIONS
+# Publish a specific API product version to the developer portal.
+# `product_version_id` is the UUID of a konnect_api_version resource.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/portal_product_version
+################################################################################
+
+portal_product_versions: []
+  # portal_product_versions uses the v2 /portals/.../product-versions endpoint
+  # (legacy API Products model) which is incompatible with v3 API Hub portals.
+  # Publish API versions to the portal using api_publications instead.

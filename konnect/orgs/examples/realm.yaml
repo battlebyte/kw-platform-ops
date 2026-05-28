@@ -1,0 +1,68 @@
+################################################################################
+# REALMS (Centralized Consumer Management)
+# A Realm is a named namespace for centralized consumers and credentials
+# that can be shared across multiple control planes.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/realm
+################################################################################
+
+realms:
+  - name: global-consumers
+    allow_all_control_planes: true
+    consumer_groups:
+      - premium-tier
+      - standard-tier
+    ttl: 30
+    negative_ttl: 5
+    force_destroy: "false"
+
+  - name: partner-consumers
+    allow_all_control_planes: false
+    # Names of control planes allowed to look up consumers in this realm.
+    # Terraform resolves these to UUIDs at plan time.
+    allowed_control_plane_names:
+      - flight-ops-eu
+      - flight-ops-apac
+    consumer_groups:
+      - partners
+    ttl: 60
+    negative_ttl: 10
+    force_destroy: "false"
+
+################################################################################
+# CENTRALIZED CONSUMERS
+# Consumers provisioned inside a Realm (shared across control planes).
+# Use realm_name; Terraform resolves it to the realm UUID at plan time.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/centralized_consumer
+################################################################################
+
+centralized_consumers:
+  - realm_name: global-consumers
+    username: alice
+    custom_id: "user-1234"
+    consumer_type: proxy
+    consumer_groups:
+      - premium-tier
+    tags:
+      - managed-by-terraform
+      - env-production
+
+  - realm_name: global-consumers
+    username: partner-acme-corp
+    custom_id: "partner-acme-001"
+    consumer_type: proxy
+    consumer_groups:
+      - standard-tier
+
+################################################################################
+# CENTRALIZED CONSUMER KEYS
+# API key credentials for consumers within a Realm.
+# Use realm_name + consumer_username; Terraform resolves both to UUIDs at plan time.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/centralized_consumer_key
+################################################################################
+
+centralized_consumer_keys:
+  - realm_name: global-consumers
+    consumer_username: alice       # resolved to consumer UUID at plan time
+    key_type: "new"
+    tags:
+      - managed-by-terraform

@@ -19,3 +19,23 @@ control_planes:
     description: Ground Operations control plane
     labels:
       team: ground-operations
+
+################################################################################
+# CONTROL PLANE GROUPS
+# A Control Plane Group aggregates multiple standard control planes under a
+# single management entity (cluster_type is set automatically).
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/gateway_control_plane
+################################################################################
+
+control_plane_groups:
+  - name: all-flight-ops-group
+    description: "Group containing all Flight Operations control planes"
+    labels:
+      team: flight-operations
+      tier: group
+    # Names of standard control planes to add as members of this group.
+    # These must already exist in control_planes above.
+    group_memberships:
+      - flight-operations-cp-prod
+      - flight-operations-cp-qa
+      - flight-operations-cp-dev

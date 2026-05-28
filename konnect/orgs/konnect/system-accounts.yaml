@@ -1,0 +1,73 @@
+################################################################################
+# SYSTEM ACCOUNTS
+# Service principals for automated workflows (CI/CD, platform tooling, etc.)
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/system_account
+################################################################################
+
+system_accounts:
+  - name: platform-ci-cd
+    description: "CI/CD pipeline service account for automated provisioning"
+    labels:
+      env: platform
+      owner: platform-team
+    # Grant org-level roles to this account
+    roles:
+      - name: Admin
+        entity_type_name: Control Planes
+        entity_region: "*"
+    # Create a long-lived access token for this account
+    create_access_token: true
+    token_name: platform-ci-cd-token
+    token_expires_at: "2026-12-31T23:59:59Z"
+
+  - name: observability-agent
+    description: "Read-only service account for monitoring and observability tooling"
+    labels:
+      env: platform
+      owner: sre-team
+    roles:
+      - name: Viewer
+        entity_type_name: Control Planes
+        entity_region: eu
+        # entity_names: ["*"]  # uncomment to scope to specific control planes
+    create_access_token: false
+
+  - name: portal-publisher
+    description: "Service account with permissions to publish APIs to the developer portal"
+    labels:
+      env: platform
+      owner: api-team
+    roles:
+      - name: Admin
+        entity_type_name: Portals
+        entity_region: "*"
+    create_access_token: true
+    token_name: portal-publisher-token
+    token_expires_at: "2026-12-31T23:59:59Z"
+
+  - name: flight-operations-system-account
+    description: "Service account for the Flight Operations team"
+    labels:
+      env: platform
+      owner: flight-operations
+    create_access_token: false
+
+  - name: ground-operations-system-account
+    description: "Service account for the Ground Operations team"
+    labels:
+      env: platform
+      owner: ground-operations
+    create_access_token: false
+
+################################################################################
+# SYSTEM ACCOUNT ↔ TEAM BINDINGS
+# Assign system accounts to existing teams for RBAC inheritance.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/system_account_team
+################################################################################
+
+system_account_teams:
+  - account_name: flight-operations-system-account
+    team_name: flight-operations
+
+  - account_name: ground-operations-system-account
+    team_name: ground-operations

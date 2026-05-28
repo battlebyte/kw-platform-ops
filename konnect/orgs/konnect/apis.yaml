@@ -1,0 +1,167 @@
+################################################################################
+# APIS (Service Catalog / API Hub)
+# Top-level API entities in the Konnect Service Catalog.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/api
+################################################################################
+
+apis:
+  - name: kongair-flights
+    description: "Real-time flight schedule, availability, and booking API"
+    labels:
+      domain: transport
+      lifecycle: production
+      team: flights-team
+    version: "v1"
+    # Inline OAS3 spec (use spec_content.file for large specs)
+    spec_content:
+      content: |
+        openapi: 3.0.0
+        info:
+          title: KongAir Flights API
+          version: "1.0.0"
+          description: Real-time flight scheduling and booking
+        paths:
+          /flights:
+            get:
+              summary: List available flights
+              responses:
+                "200":
+                  description: OK
+          /flights/{id}:
+            get:
+              summary: Get flight details
+              parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+              responses:
+                "200":
+                  description: OK
+    # Optional: publish immediately to portals
+    portals:
+      - name: kongair-api-dev-portal
+        visibility: public
+        auth_strategy_ids: []
+        auto_approve_registrations: false
+
+  - name: kongair-loyalty
+    description: "Loyalty programme — points, tier status, and rewards redemption"
+    labels:
+      domain: loyalty
+      lifecycle: production
+      team: loyalty-team
+    version: "v2"
+
+################################################################################
+# API VERSIONS
+# Additional versions for the same API slug.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/api_version
+################################################################################
+
+api_versions:
+  - api_name: kongair-flights
+    version: "2.0.0"
+    spec_content:
+      content: |
+        openapi: 3.0.0
+        info:
+          title: KongAir Flights API
+          version: "2.0.0"
+        paths:
+          /flights:
+            get:
+              summary: List available flights (v2 — extended response)
+              responses:
+                "200":
+                  description: OK
+
+################################################################################
+# API DOCUMENTS
+# Markdown documentation pages attached to an API.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/api_document
+################################################################################
+
+api_documents:
+  - api_name: kongair-flights
+    slug: getting-started
+    title: Getting Started with the Flights API
+    status: published
+    content: |
+      # Getting Started
+
+      Use your API key in the `x-api-key` header on every request.
+
+      ```bash
+      curl -H "x-api-key: $API_KEY" https://api.kongair.example/v1/flights
+      ```
+
+  - api_name: kongair-flights
+    slug: changelog
+    title: Changelog
+    status: published
+    content: |
+      # Changelog
+
+      ## v2.0.0
+      - Extended response schema with additional fields.
+
+      ## v1.0.0
+      - Initial release.
+
+################################################################################
+# API PUBLICATIONS
+# Publish an API (or a specific version) to a developer portal.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/api_publication
+################################################################################
+
+api_publications:
+  - api_name: kongair-loyalty
+    portal_name: kongair-api-dev-portal
+    visibility: public
+    auth_strategy_ids: []
+    auto_approve_registrations: false
+
+################################################################################
+# API SPECIFICATIONS (standalone — separate from inline spec_content)
+# Manage a raw spec file as an independent resource that can be updated
+# without replacing the API itself.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/api_specification
+################################################################################
+
+api_specifications:
+  - api_name: kongair-loyalty
+    type: oas3
+    content: |
+      openapi: 3.0.0
+      info:
+        title: KongAir Loyalty API (standalone spec)
+        version: "2.0.0"
+      paths:
+        /accounts/{id}/points:
+          get:
+            summary: Get loyalty points balance
+            parameters:
+              - name: id
+                in: path
+                required: true
+                schema:
+                  type: string
+            responses:
+              "200":
+                description: OK
+
+################################################################################
+# API IMPLEMENTATIONS
+# Link an API to a backend service running inside a Konnect control plane.
+# `service.control_plane_id` and `service.id` must be UUIDs of real resources.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/api_implementation
+################################################################################
+
+api_implementations: []
+  # To link an API to a backend gateway service, add an entry like:
+  #   - api_name: kongair-flights
+  #     service:
+  #       control_plane_name: flight-operations-cp-prod   # Terraform resolves to UUID at plan time
+  #       id: "<real-konnect_gateway_service-uuid>"       # must be a live service UUID in that CP

@@ -12,7 +12,8 @@ resource "konnect_portal_custom_domain" "this" {
   hostname  = var.hostname
   enabled   = var.enabled
   ssl = {
-    type = var.ssl_type
+    type                       = var.ssl_type
+    domain_verification_method = var.ssl_domain_verification_method
   }
 }
 

@@ -1,0 +1,79 @@
+################################################################################
+# CLOUD GATEWAY NETWORKS
+# Managed VPC networks for Konnect Dedicated Cloud Gateways.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/cloud_gateway_network
+################################################################################
+
+cloud_gateway_networks:
+  - name: kongair-eu-west-network
+    region: eu-west-1
+    cidr_block: "10.100.0.0/16"
+    availability_zones:
+      - eu-west-1a
+      - eu-west-1b
+      - eu-west-1c
+    # Replace with the Cloud Gateway provider account ID from your Konnect org
+    cloud_gateway_provider_account_id: "00000000-0000-0000-0000-provider000001"
+
+################################################################################
+# CLOUD GATEWAY CONFIGURATIONS
+# Attach a Dedicated Cloud Gateway to a Konnect control plane.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/cloud_gateway_configuration
+################################################################################
+
+cloud_gateway_configurations:
+  - control_plane_name: flight-ops-eu      # resolved to UUID at plan time
+    control_plane_geo: eu
+    config_version: "1"
+    dataplane_groups:
+      - provider: aws
+        region: eu-west-1
+        autoscale:
+          kind: autopilot
+          base_rps: 100
+          max_rps: 1000
+        network_name: kongair-eu-west-network  # resolved to network UUID at plan time
+
+################################################################################
+# CLOUD GATEWAY CUSTOM DOMAINS
+# Custom hostnames for Dedicated Cloud Gateway data planes.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/cloud_gateway_custom_domain
+################################################################################
+
+cloud_gateway_custom_domains:
+  - control_plane_name: flight-ops-eu      # resolved to UUID at plan time
+    control_plane_geo: eu
+    domain: "gateway.kongair.example"
+
+################################################################################
+# CLOUD GATEWAY TRANSIT GATEWAYS
+# Connect a Cloud Gateway Network to a private cloud network via AWS Transit
+# Gateway, AWS VPC Peering, Azure VNet Peering, or GCP VPC Peering.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/cloud_gateway_transit_gateway
+################################################################################
+
+cloud_gateway_transit_gateways:
+  - network_name: kongair-eu-west-network   # resolved to network UUID at plan time
+    aws_transit_gateway:
+      kind: aws-transit-gateway-attachment
+      transit_gateway_id: tgw-0123456789abcdef0
+      ram_share_arn: "arn:aws:ram:eu-west-1:123456789012:resource-share/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      cidr_blocks:
+        - "172.16.0.0/12"
+
+################################################################################
+# CLOUD GATEWAY PRIVATE DNS
+# Private DNS resolvers attached to a Cloud Gateway Network.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/cloud_gateway_private_dns
+################################################################################
+
+cloud_gateway_private_dns:
+  - network_name: kongair-eu-west-network   # resolved to network UUID at plan time
+    name: internal-resolver
+    private_dns_attachment_config:
+      aws_private_dns_resolver_attachment_config:
+        kind: aws-outbound-resolver
+        dns_config:
+          remote_dns_server_ip_addresses:
+            - "10.100.1.2"
+            - "10.100.2.2"

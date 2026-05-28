@@ -1,0 +1,63 @@
+################################################################################
+# INTEGRATION INSTANCES
+# Third-party integrations managed via the Konnect Catalog (e.g. AWS Lambda).
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/integration_instance
+################################################################################
+
+integration_instances:
+  - name: aws-lambda-prod
+    display_name: "AWS Lambda (Production)"
+    integration_name: aws-lambda
+    description: "Production AWS Lambda integration for serverless backend routing"
+    config: |
+      {
+        "region": "eu-west-1",
+        "role_arn": "arn:aws:iam::123456789012:role/KonnectLambdaRole"
+      }
+    labels:
+      env: production
+      owner: platform-team
+
+  - name: aws-lambda-staging
+    display_name: "AWS Lambda (Staging)"
+    integration_name: aws-lambda
+    description: "Staging AWS Lambda integration"
+    config: |
+      {
+        "region": "eu-west-1",
+        "role_arn": "arn:aws:iam::123456789012:role/KonnectLambdaRoleStaging"
+      }
+    labels:
+      env: staging
+      owner: platform-team
+
+################################################################################
+# INTEGRATION INSTANCE AUTH CONFIGS
+# OAuth2 configuration for an integration instance.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/integration_instance_auth_config
+################################################################################
+
+integration_instance_auth_configs:
+  - integration_instance_name: aws-lambda-prod
+    oauth_config:
+      authorization_endpoint: "https://auth.example.com/oauth2/authorize"
+      client_id: "my-integration-client"
+      # client_secret: injected via sensitive_vars at runtime
+      client_secret: "REPLACE_FROM_SENSITIVE_VARS"
+      token_endpoint: "https://auth.example.com/oauth2/token"
+
+################################################################################
+# INTEGRATION INSTANCE AUTH CREDENTIALS
+# Multi-key header credential for an integration instance.
+# Docs: https://registry.terraform.io/providers/Kong/konnect/latest/docs/resources/integration_instance_auth_credential
+################################################################################
+
+integration_instance_auth_credentials:
+  - integration_instance_name: aws-lambda-prod
+    multi_key_auth:
+      config:
+        headers:
+          - name: x-api-key
+            key: "REPLACE_FROM_SENSITIVE_VARS"
+          - name: x-tenant-id
+            key: "kongair-prod"
